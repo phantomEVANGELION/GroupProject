@@ -9,6 +9,7 @@ import time
 import traceback
 import asyncio
 import urllib.request
+from datetime import date, timedelta
 
 # 确保在项目根目录
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -57,10 +58,6 @@ app = FastAPI(title="AI 跨境出海运营助手", lifespan=lifespan)
 # ========== 文件上传配置 ==========
 UPLOAD_DIR = os.path.join(config.BASE_DIR, "data", "uploads")
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".md", ".json", ".yaml", ".yml"}
-
-# ========== 汇率缓存 ==========
-_rates_cache = {"data": None, "timestamp": 0}
-RATES_CACHE_TTL = 1800  # 30 分钟
 
 # ========== 汇率缓存 ==========
 _rates_cache = {"data": None, "timestamp": 0}
@@ -177,6 +174,38 @@ body { padding-top: 56px; }
 .rates-refresh .btn { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
                       padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
 .rates-refresh .btn:hover { background: #e2e8f0; }
+
+/* ---- Rate Modal ---- */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                 background: rgba(0,0,0,0.45); z-index: 2000;
+                 display: none; align-items: center; justify-content: center;
+                 backdrop-filter: blur(2px); }
+.modal-overlay.active { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 28px;
+         max-width: 720px; width: 92%; max-height: 88vh;
+         overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+         position: relative; animation: modalIn .25s ease; }
+@keyframes modalIn { from { opacity:0; transform:scale(.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.modal-close { position: absolute; top: 16px; right: 20px; border: none;
+               background: none; font-size: 24px; cursor: pointer; color: #94a3b8;
+               line-height: 1; padding: 4px; }
+.modal-close:hover { color: #ef4444; }
+.modal h2 { font-size: 18px; color: #0f172a; margin-bottom: 4px; }
+.modal .sub { font-size: 13px; color: #94a3b8; margin-bottom: 16px; }
+.modal .chart-wrap { width: 100%; height: 280px; margin: 16px 0; position: relative; }
+.modal .chart-wrap canvas { width: 100%; height: 100%; }
+.rate-item { cursor: pointer; transition: box-shadow .2s, transform .15s; }
+.rate-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.rate-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.stat-box { background: #f8fafc; border-radius: 8px; padding: 10px; text-align: center; }
+.stat-box .label { font-size: 11px; color: #94a3b8; }
+.stat-box .val { font-size: 15px; font-weight: 700; color: #0f172a; margin-top: 2px; }
+.stat-box .val.up { color: #10b981; }
+.stat-box .val.down { color: #ef4444; }
+.rate-analysis { background: #f8fafc; border-radius: 10px; padding: 14px 18px; margin: 12px 0;
+                 font-size: 14px; color: #475569; line-height: 1.7; }
+.rate-analysis strong { color: #0f172a; }
+.rate-forecast-note { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px; }
 
 /* ========== Analysis Page (existing) ========== */
 .header { text-align: center; padding: 20px 0; }
@@ -320,7 +349,7 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
     <a href="#home">首页</a>
     <a href="#analyze">全面产品分析</a>
     <a href="#platforms">海外平台介绍</a>
-    <a href="#rates">实时汇率</a>
+    <a href="#rates">汇率咨询</a>
   </div>
 </nav>
 
@@ -556,7 +585,7 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 <!-- ==================== Page: Rates ==================== -->
 <div id="page-rates" class="page">
 <div class="container">
-<div class="header"><h1>💱 实时汇率</h1><p>主要货币兑美元汇率（每 30 分钟自动更新）</p></div>
+<div class="header"><h1>💱 汇率咨询</h1><p>主要货币兑美元汇率（每 30 分钟自动更新）· 点击任一货币查看历史走势</p></div>
 <div class="rates-card">
   <div class="rates-header">
     <h3>💵 汇率表（基准: USD）</h3>
@@ -571,6 +600,19 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 </div>
 <div class="footer">汇率数据来源: ExchangeRate-API · 仅供参考，实际交易以银行报价为准</div>
 </div>
+</div>
+
+<!-- ==================== Rate Detail Modal ==================== -->
+<div class="modal-overlay" id="rateModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeRateModal()">✕</button>
+    <h2 id="rateModalTitle">USD/CNY</h2>
+    <p class="sub" id="rateModalSub">近 12 个月走势</p>
+    <div class="chart-wrap"><canvas id="rateChart"></canvas></div>
+    <div class="rate-stats" id="rateStats"></div>
+    <div class="rate-analysis" id="rateAnalysis">⏳ 分析加载中...</div>
+    <div class="rate-forecast-note">📈 7 日预测基于线性趋势模型，仅供参考</div>
+  </div>
 </div>
 
 <!-- ==================== Toast ==================== -->
@@ -625,7 +667,7 @@ async function fetchRates() {
             if (!val) continue;
             var cnyVal = cny ? (val / cny).toFixed(c.code === "JPY" || c.code === "KRW" || c.code === "VND" ? 0 : 4) : "-";
             var usdVal = val.toFixed(c.code === "JPY" || c.code === "KRW" || c.code === "VND" ? 2 : 4);
-            html += '<div class="rate-item">';
+            html += '<div class="rate-item" onclick="showRateDetail(\'' + c.code + '\',\'' + c.name + '\')">';
             html += '  <div class="pair">' + c.flag + ' ' + c.code + ' / ' + c.name + '</div>';
             html += '  <div class="value">' + usdVal + '</div>';
             html += '  <div class="change">≈ ' + cnyVal + ' CNY</div>';
@@ -643,6 +685,215 @@ var routerCheck = setInterval(function() {
         fetchRates(); RATES_CACHE = true;
     }
 }, 500);
+
+// ==================== Rate Detail Modal ====================
+function showRateDetail(code, name) {
+    var modal = document.getElementById("rateModal");
+    document.getElementById("rateModalTitle").textContent = "USD / " + code;
+    document.getElementById("rateModalSub").textContent = name + " · 近 12 个月走势";
+    document.getElementById("rateAnalysis").textContent = "⏳ 加载中...";
+    document.getElementById("rateStats").innerHTML = "";
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+
+    fetch("/api/rates/history?target=" + code + "&months=12")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                document.getElementById("rateAnalysis").textContent = "❌ 获取失败: " + data.error;
+                return;
+            }
+            if (!data.history || data.history.length < 2) {
+                document.getElementById("rateAnalysis").textContent = "❌ 历史数据不足";
+                return;
+            }
+            renderRateChart(data, code, name);
+            renderRateStats(data.stats);
+            renderRateAnalysis(data, code, name);
+        })
+        .catch(function(e) {
+            document.getElementById("rateAnalysis").textContent = "❌ 网络错误: " + e.message;
+        });
+}
+
+function closeRateModal() {
+    document.getElementById("rateModal").classList.remove("active");
+    document.body.style.overflow = "";
+}
+
+// Close on overlay click
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("modal-overlay")) closeRateModal();
+});
+// Close on Escape
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") closeRateModal();
+});
+
+function renderRateChart(data, code, name) {
+    var canvas = document.getElementById("rateChart");
+    var rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * 2;
+    canvas.height = rect.height * 2;
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
+
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width, H = canvas.height;
+    var dpr = 2;
+    ctx.scale(1, 1);
+
+    var history = data.history || [];
+    var forecast = data.forecast || [];
+
+    // Find min/max
+    var allVals = history.map(function(h) { return h.value; });
+    if (forecast.length) allVals = allVals.concat(forecast.map(function(f) { return f.value; }));
+    var minVal = Math.min.apply(null, allVals);
+    var maxVal = Math.max.apply(null, allVals);
+    var range = maxVal - minVal || 0.01;
+    var pad = range * 0.15;
+    var yMin = minVal - pad;
+    var yMax = maxVal + pad;
+
+    var margin = { top: 20 * dpr, right: 20 * dpr, bottom: 35 * dpr, left: 55 * dpr };
+    var plotW = W - margin.left - margin.right;
+    var plotH = H - margin.top - margin.bottom;
+
+    function xPos(i, total) { return margin.left + (i / (total - 1 || 1)) * plotW; }
+    function yPos(v) { return margin.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH; }
+
+    // Clear
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1 * dpr;
+    var gridLines = 5;
+    for (var g = 0; g <= gridLines; g++) {
+        var y = margin.top + (g / gridLines) * plotH;
+        ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(W - margin.right, y); ctx.stroke();
+        var label = (yMax - (g / gridLines) * (yMax - yMin)).toFixed(4);
+        ctx.fillStyle = "#94a3b8"; ctx.font = (11 * dpr) + "px sans-serif"; ctx.textAlign = "right";
+        ctx.fillText(label, margin.left - 6 * dpr, y + 4 * dpr);
+    }
+
+    // X-axis labels (monthly)
+    ctx.fillStyle = "#94a3b8"; ctx.font = (11 * dpr) + "px sans-serif"; ctx.textAlign = "center";
+    var total = history.length;
+    var step = Math.max(1, Math.floor(total / 10));
+    for (var i = 0; i < total; i += step) {
+        var x = xPos(i, total);
+        var dateStr = history[i].date.slice(5, 10);
+        ctx.fillText(dateStr, x, H - margin.bottom + 16 * dpr);
+    }
+
+    // Y-axis title
+    ctx.save();
+    ctx.translate(14 * dpr, margin.top + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = "#94a3b8"; ctx.font = (11 * dpr) + "px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("USD / " + code, 0, 0);
+    ctx.restore();
+
+    // Draw area fill
+    ctx.beginPath();
+    ctx.moveTo(xPos(0, total), yPos(history[0].value));
+    for (var i = 0; i < total; i++) { ctx.lineTo(xPos(i, total), yPos(history[i].value)); }
+    ctx.lineTo(xPos(total - 1, total), yPos(history[total - 1].value));
+    ctx.lineTo(xPos(total - 1, total), H - margin.bottom);
+    ctx.lineTo(xPos(0, total), H - margin.bottom);
+    ctx.closePath();
+    var grad = ctx.createLinearGradient(0, margin.top, 0, H - margin.bottom);
+    grad.addColorStop(0, "rgba(59,130,246,0.12)");
+    grad.addColorStop(1, "rgba(59,130,246,0.01)");
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Draw history line
+    ctx.beginPath();
+    ctx.moveTo(xPos(0, total), yPos(history[0].value));
+    for (var i = 0; i < total; i++) { ctx.lineTo(xPos(i, total), yPos(history[i].value)); }
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 2 * dpr;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+
+    // Draw forecast (dashed)
+    if (forecast.length > 0) {
+        var fTotal = forecast.length;
+        ctx.setLineDash([4 * dpr, 4 * dpr]);
+        ctx.beginPath();
+        ctx.moveTo(xPos(total - 1, total), yPos(history[total - 1].value));
+        for (var i = 0; i < fTotal; i++) {
+            var fx = W - margin.right + ((i + 1) / (fTotal + 1)) * (margin.right / 2);
+            fx = Math.min(fx, W - margin.right);
+            ctx.lineTo(fx, yPos(forecast[i].value));
+        }
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 2 * dpr;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // "预测" label
+        ctx.fillStyle = "#f59e0b";
+        ctx.font = (11 * dpr) + "px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("→ 7日预测", W - margin.right - 60 * dpr, margin.top + 14 * dpr);
+    }
+}
+
+function renderRateStats(stats) {
+    var html = "";
+    var changeClass = (stats.change || 0) >= 0 ? "up" : "down";
+    var changeSign = (stats.change || 0) >= 0 ? "+" : "";
+    html += '<div class="stat-box"><div class="label">当前</div><div class="val">' + (stats.end || "-").toFixed(4) + '</div></div>';
+    html += '<div class="stat-box"><div class="label">12月最高</div><div class="val">' + (stats.high || "-").toFixed(4) + '</div></div>';
+    html += '<div class="stat-box"><div class="label">12月最低</div><div class="val">' + (stats.low || "-").toFixed(4) + '</div></div>';
+    html += '<div class="stat-box"><div class="label ' + changeClass + '">变动</div><div class="val ' + changeClass + '">' + changeSign + (stats.change || 0).toFixed(2) + '%</div></div>';
+    document.getElementById("rateStats").innerHTML = html;
+}
+
+function renderRateAnalysis(data, code, name) {
+    var stats = data.stats || {};
+    var history = data.history || [];
+    var forecast = data.forecast || [];
+
+    if (!stats || !history.length) {
+        document.getElementById("rateAnalysis").textContent = "数据不足，无法生成分析";
+        return;
+    }
+
+    var change = stats.change || 0;
+    var direction = change >= 0 ? "升值" : "贬值";
+    var dirEmoji = change >= 0 ? "📈" : "📉";
+    var stability = "波动较大";
+    var std = 0;
+    var vals = history.map(function(h) { return h.value; });
+    var mean = vals.reduce(function(a,b) { return a+b; }, 0) / vals.length;
+    std = Math.sqrt(vals.reduce(function(s,v) { return s + (v-mean)*(v-mean); }, 0) / vals.length);
+    var relStd = (std / mean * 100);
+    if (relStd < 1) stability = "波动较小";
+    else if (relStd < 3) stability = "波动适中";
+
+    var trendDesc = "在过去 12 个月中，" + code + " (" + name + ") 兑美元整体呈";
+    if (Math.abs(change) < 1) trendDesc += "基本持平的趋势";
+    else if (Math.abs(change) < 5) trendDesc += "平稳" + (change > 0 ? "上升" : "下降") + "趋势，变动约 " + Math.abs(change).toFixed(1) + "%";
+    else trendDesc += "明显" + (change > 0 ? "升值" : "贬值") + "趋势，变动约 " + Math.abs(change).toFixed(1) + "%";
+
+    var forecastDesc = "";
+    if (forecast.length > 0) {
+        var fChange = ((forecast[forecast.length-1].value - history[history.length-1].value) / history[history.length-1].value * 100);
+        var fDir = fChange >= 0 ? "小幅升值" : "小幅贬值";
+        forecastDesc = " 根据线性趋势模型，未来 7 天预计" + fDir + "约 " + Math.abs(fChange).toFixed(1) + "%。";
+    }
+
+    var analysis = dirEmoji + " <strong>" + code + " " + direction + "</strong> · " + stability + " · 变动 " + Math.abs(change).toFixed(1) + "%<br><br>";
+    analysis += trendDesc + "。" + forecastDesc + "<br><br>";
+    analysis += "⚡ 最高 " + stats.high.toFixed(4) + "，最低 " + stats.low.toFixed(4) + "，均值 " + (stats.average || "").toFixed(4) + "。";
+
+    document.getElementById("rateAnalysis").innerHTML = analysis;
+}
 
 // ==================== Analysis Page (existing) ====================
 const TAB_NAMES = ["📋 产品分析","🌍 市场分析","⚔️ 竞品分析","🎯 营销策略","✍️ 文案编写"];
@@ -970,6 +1221,64 @@ async def get_rates():
             _rates_cache["data"]["error_hint"] = f"更新失败: {e}"
             return _rates_cache["data"]
         return {"base": "USD", "rates": {}, "updated_at": "", "error": str(e)}
+
+
+RATES_HISTORY_API = "https://api.frankfurter.app"
+
+@app.get("/api/rates/history")
+async def rates_history(target: str = "CNY", months: int = 12):
+    """获取汇率历史数据（近 N 个月），含基本统计和线性预测"""
+    loop = asyncio.get_event_loop()
+    today = date.today()
+    start = today - timedelta(days=months * 30)
+    url = f"{RATES_HISTORY_API}/{start.isoformat()}..{today.isoformat()}?from=USD&to={target}"
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        resp = await loop.run_in_executor(
+            None, lambda: urllib.request.urlopen(req, timeout=15)
+        )
+        raw = json.loads(resp.read().decode("utf-8"))
+        raw_rates = raw.get("rates", {})
+
+        history = []
+        for date_str in sorted(raw_rates.keys()):
+            val = raw_rates[date_str].get(target)
+            if val:
+                history.append({"date": date_str, "value": round(val, 4)})
+
+        if len(history) < 2:
+            return {"target": target, "base": "USD", "history": history,
+                    "stats": {}, "forecast": [], "error": "数据不足"}
+
+        values = [h["value"] for h in history]
+        stats = {
+            "high": round(max(values), 4),
+            "low": round(min(values), 4),
+            "average": round(sum(values) / len(values), 4),
+            "start": round(values[0], 4),
+            "end": round(values[-1], 4),
+            "change": round((values[-1] - values[0]) / values[0] * 100, 2),
+        }
+
+        # 线性回归预测 7 天
+        n = len(values)
+        x_mean = (n - 1) / 2
+        y_mean = sum(values) / n
+        num = sum((i - x_mean) * (v - y_mean) for i, v in enumerate(values))
+        den = sum((i - x_mean) ** 2 for i in range(n))
+        slope = num / den if den else 0
+        intercept = y_mean - slope * x_mean
+        forecast = []
+        for i in range(1, 8):
+            pred = slope * (n + i) + intercept
+            forecast.append({"day": i, "value": round(pred, 4)})
+
+        return {"target": target, "base": "USD", "history": history,
+                "stats": stats, "forecast": forecast}
+    except Exception as e:
+        return {"target": target, "base": "USD", "history": [],
+                "stats": {}, "forecast": [], "error": str(e)}
 
 
 @app.post("/analyze")

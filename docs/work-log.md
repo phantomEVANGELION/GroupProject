@@ -72,6 +72,18 @@ AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepS
 
 ---
 
+### 改动八：汇率历史走势弹窗（折线图 + 分析 + 预测）
+- 导航栏和页面标题"实时汇率"改为"汇率咨询"
+- 点击任一汇率卡片弹出居中 Modal，显示近 12 月折线图（Canvas 自绘，零依赖）
+- 折线图含：面积填充、网格线、月度标签、统计摘要（最高/最低/变动%）
+- 新增 `/api/rates/history` 端点，从 Frankfurter API 获取历史数据
+- 后端线性回归生成 7 日预测，前端以虚线绘制在图表右侧
+- 文字分析：趋势描述、波动评估、预测说明
+- 预测仅供参考标注
+- **涉及文件**: `app.py`
+
+---
+
 ### 技术要点
 - **RAG 相关性阈值**: 0.45（`config.py` 中 `RAG_SCORE_THRESHOLD` 参数）
 - **Embedding 模型**: BAAI/bge-small-zh-v1.5（本地 CPU），自动降级 OpenAI Compatible
