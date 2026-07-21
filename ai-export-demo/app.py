@@ -634,6 +634,7 @@ function navigate() {
 }
 window.addEventListener("hashchange", navigate);
 if (!location.hash) location.hash = "home";
+navigate(); // 确保首次加载时执行导航，即使用户的 hash 与预期不同
 
 // ==================== Rates Page ====================
 var RATES_CACHE = null;
