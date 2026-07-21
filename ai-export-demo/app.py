@@ -410,7 +410,7 @@ async function startAnalysis() {
     document.getElementById("errorBox").style.display = "none";
     document.getElementById("analyzeBtn").disabled = true;
     document.getElementById("progressSection").className = "progress active";
-    document.getElementById("tabsSection").className = "tabs";
+    document.getElementById("tabsSection").className = "tabs active";
 
     document.getElementById("tabContents").innerHTML = "";
     document.getElementById("tabHeaders").innerHTML = "";
