@@ -143,6 +143,63 @@ def format_market(state: dict) -> str:
             html += "</div>"
         html += "</div>"
 
+    # ---- 市场规模 ----
+    ms = ma.get("market_size", {})
+    if isinstance(ms, dict) and any(v for v in ms.values() if v):
+        html += '<div class="result-card">'
+        html += "<h3>市场规模</h3>"
+        for key, label in [("us", "🇺🇸 美国"), ("eu", "🇪🇺 欧洲"), ("global", "🌍 全球"), ("growth_rate", "📈 年增长率")]:
+            val = ms.get(key, "")
+            if val:
+                html += f"<p><strong>{label}</strong>: {val}</p>"
+        html += "</div>"
+
+    # ---- 头部企业 ----
+    players = ma.get("key_players", [])
+    if players:
+        html += '<div class="result-card"><h3>头部企业及市场份额</h3><ul>'
+        for p in players:
+            if isinstance(p, dict):
+                name = p.get("name", "")
+                share = p.get("share", "")
+                html += f"<li><strong>{name}</strong> — {share}</li>"
+        html += "</ul></div>"
+
+    # ---- 准入限制 ----
+    reqs = ma.get("entry_requirements", [])
+    if reqs:
+        html += '<div class="result-card"><h3>准入限制与认证要求</h3>'
+        for r in reqs:
+            if isinstance(r, dict):
+                mkt = r.get("market", "")
+                certs = r.get("certifications", [])
+                notes = r.get("notes", "")
+                html += f"<p><strong>{mkt}</strong></p>"
+                if certs:
+                    html += "<ul>" + "".join(f"<li>{c}</li>" for c in certs) + "</ul>"
+                if notes:
+                    html += f"<p class='data-source'>{notes}</p>"
+        html += "</div>"
+
+    # ---- 重要展会 ----
+    exhs = ma.get("major_exhibitions", [])
+    if exhs:
+        html += '<div class="result-card"><h3>重要行业展会</h3>'
+        for e in exhs:
+            if isinstance(e, dict):
+                name = e.get("name", "")
+                loc = e.get("location", "")
+                freq = e.get("frequency", "")
+                desc = e.get("description", "")
+                html += f'<div class="market-item">'
+                html += f"<h4>{name}</h4>"
+                if loc:
+                    html += f"<p>📍 {loc} {'· ' + freq if freq else ''}</p>"
+                if desc:
+                    html += f"<p>{desc}</p>"
+                html += "</div>"
+        html += "</div>"
+
     trend = ma.get("market_trend", "")
     if trend:
         html += f'<div class="result-card"><h3>市场判断</h3><p class="trend"><strong>{trend}</strong></p></div>'
@@ -183,6 +240,26 @@ def format_competitor(state: dict) -> str:
             html += f"<td>{c.get('our_advantage', '-')[:60]}</td>"
             html += "</tr>"
         html += "</tbody></table></div>"
+        html += "</div>"
+
+    # ---- 改进建议 ----
+    imprs = ca.get("recommended_improvements", [])
+    if imprs:
+        html += '<div class="result-card">'
+        html += "<h3>产品改进建议</h3>"
+        for item in imprs:
+            if isinstance(item, dict):
+                area = item.get("area", "")
+                suggestion = item.get("suggestion", "")
+                impact = item.get("impact", "")
+                effort = item.get("effort", "")
+                impact_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(impact, "⚪")
+                effort_icon = {"high": "💪", "medium": "👍", "low": "⚡"}.get(effort, "•")
+                html += f'<div class="market-item">'
+                html += f"<h4>📌 {area}</h4>"
+                html += f"<p>{suggestion}</p>"
+                html += f'<p class="data-source">影响: {impact_icon} {impact} · 投入: {effort_icon} {effort}</p>'
+                html += "</div>"
         html += "</div>"
 
     diff = ca.get("differentiation_opportunity", "")
@@ -387,3 +464,62 @@ def _format_live(data: dict) -> str:
         html += "</div>"
 
     return html or '<p class="empty-state">（内容为空）</p>'
+
+
+def format_comprehensive(state: dict) -> str:
+    """综合报告 —— 汇总分析精华 + 运输物流建议"""
+    cp = state.get("comprehensive")
+    if not cp:
+        return ""
+
+    html = ""
+
+    summary = cp.get("summary", "")
+    if summary:
+        html += '<div class="result-card">'
+        html += "<h3>📋 核心结论摘要</h3>"
+        html += f"<p>{summary}</p>"
+        html += "</div>"
+
+    # 关键数据一览
+    html += '<div class="result-card">'
+    html += "<h3>📊 关键数据一览</h3>"
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:8px;">'
+
+    pa = state.get("product_analysis") or {}
+    ma = state.get("market_analysis") or {}
+    ca = state.get("competitor_analysis") or {}
+    st = state.get("strategy") or {}
+
+    cat = pa.get("category", {})
+    if isinstance(cat, dict):
+        levels = [cat.get(k, "") for k in ("level1", "level2", "level3")]
+        levels = [l for l in levels if l]
+        if levels:
+            html += f'<div class="stat-box"><div class="label">产品分类</div><div class="val" style="font-size:13px;">{"→".join(levels)}</div></div>'
+
+    markets = ma.get("recommended_markets", [])
+    html += f'<div class="stat-box"><div class="label">推荐市场</div><div class="val">{len(markets)} 个</div></div>'
+
+    competitors = ca.get("competitors", [])
+    html += f'<div class="stat-box"><div class="label">竞品分析</div><div class="val">{len(competitors)} 个</div></div>'
+
+    channels = st.get("channels", [])
+    html += f'<div class="stat-box"><div class="label">推荐渠道</div><div class="val">{len(channels)} 个</div></div>'
+    html += "</div></div>"
+
+    transport = cp.get("transport", "")
+    if transport:
+        html += '<div class="result-card">'
+        html += "<h3>🚢 运输物流建议</h3>"
+        html += f"<p>{transport}</p>"
+        html += "</div>"
+
+    recommendations = cp.get("recommendations", "")
+    if recommendations:
+        html += '<div class="result-card">'
+        html += "<h3>💡 综合建议</h3>"
+        html += f"<p>{recommendations}</p>"
+        html += "</div>"
+
+    return html or '<p class="empty-state">（综合报告生成中）</p>'

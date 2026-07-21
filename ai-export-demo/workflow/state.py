@@ -32,6 +32,9 @@ class WorkflowState(TypedDict):
     # ========== 节点 5：内容生成 ==========
     contents: Optional[dict]
 
+    # ========== 节点 6：综合报告 ==========
+    comprehensive: Optional[dict]
+
     # ========== 执行元数据 ==========
     errors: list[str]
 
@@ -54,5 +57,6 @@ def create_initial_state(
         "competitor_sources": [],
         "strategy": None,
         "contents": None,
+        "comprehensive": None,
         "errors": [],
     }

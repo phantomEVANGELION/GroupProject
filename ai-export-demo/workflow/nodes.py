@@ -530,3 +530,81 @@ def content_node(state: WorkflowState) -> WorkflowState:
         }
 
     return state
+
+
+# ============================================================
+# 节点 6：综合报告（Comprehensive Report）
+# ============================================================
+COMPREHENSIVE_PROMPT = """你是一个跨境电商综合分析师。请基于所有分析结果为用户生成一份综合报告。
+
+【产品分析】
+{product_analysis}
+
+【市场分析】
+{market_analysis}
+
+【竞品分析】
+{competitor_analysis}
+
+【营销策略】
+{strategy}
+
+【物流参考数据】
+{logistics_context}
+
+【分析任务】
+1. 核心结论摘要 —— 用 2-3 句话概括本次分析的核心结论
+2. 运输物流建议 —— 基于产品类型和目标市场，推荐运输方式（海运/空运/快递）、
+   物流成本参考范围、选择货代还是直接联系船公司
+3. 综合建议 —— 下一步行动建议
+
+【约束】
+- 运输建议基于以上物流参考数据，不够具体时使用自身行业知识
+- 不要编造具体的海运价格数字，使用范围表述
+- 建议要切实可行，适合中小卖家
+
+【输出格式——严格使用以下 JSON 结构，不要输出其他内容】
+{{
+  "summary": "（核心结论摘要）",
+  "transport": "（运输物流建议）",
+  "recommendations": "（综合建议）"
+}}"""
+
+
+def comprehensive_node(state: WorkflowState) -> WorkflowState:
+    """综合报告节点。检索物流数据 + 聚合前序分析 + LLM 生成"""
+    logistics_context = ""
+    try:
+        docs = similarity_search(
+            config.COLLECTION_MARKET, "国际物流 海运 运输 货代 清关", k=3
+        )
+        for i, doc in enumerate(docs):
+            src = doc.metadata.get("source", "未知")
+            logistics_context += f"[片段 {i+1}] (来源: {src})\n{doc.page_content}\n\n"
+    except Exception as e:
+        state["errors"].append(f"comprehensive_node: 物流检索失败: {e}")
+
+    if not logistics_context.strip():
+        logistics_context = "（未检索到物流数据，请基于行业通用知识提供运输建议）"
+
+    prompt = COMPREHENSIVE_PROMPT.format(
+        product_analysis=json.dumps(state.get("product_analysis", {}), ensure_ascii=False, indent=2),
+        market_analysis=json.dumps(state.get("market_analysis", {}), ensure_ascii=False, indent=2),
+        competitor_analysis=json.dumps(state.get("competitor_analysis", {}), ensure_ascii=False, indent=2),
+        strategy=json.dumps(state.get("strategy", {}), ensure_ascii=False, indent=2),
+        logistics_context=logistics_context,
+    )
+
+    try:
+        raw_output = _call_llm(prompt, temperature=config.LLM_TEMPERATURE_ANALYSIS)
+        parsed, _ = _safe_parse_json(raw_output)
+        if parsed:
+            state["comprehensive"] = parsed
+        else:
+            state["errors"].append("comprehensive_node: JSON 解析失败")
+            state["comprehensive"] = {"summary": "生成失败", "transport": "", "recommendations": ""}
+    except Exception as e:
+        state["errors"].append(f"comprehensive_node: LLM 调用失败: {e}")
+        state["comprehensive"] = {"summary": "生成失败", "transport": "", "recommendations": ""}
+
+    return state

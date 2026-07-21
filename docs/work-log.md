@@ -84,6 +84,17 @@ AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepS
 
 ---
 
+### 改动九：市场/竞品分析增强 + 综合报告（物流运输）
+- 市场分析新增：市场规模（美/欧/全球）、头部企业及份额、准入限制与认证、重要行业展会
+- 竞品分析新增：产品改进建议（含影响/投入评级）
+- 新增第 6 个节点"综合报告"：汇总前 5 步精华 + 物流运输分析（海运/空运对比、运费参考、货代选择建议）
+- 新增物流知识库 `international_logistics.md`（航线运费、船公司、清关关税参考数据）
+- 新增 `format_comprehensive` 格式函数（摘要 + 关键数据卡片 + 运输建议 + 综合建议）
+- 工作流从 5 步扩展为 6 步，前端进度条/Tab/通知全部同步更新
+- **涉及文件**: `rag/prompts.py`, `app_format.py`, `workflow/nodes.py`, `workflow/graph.py`, `workflow/state.py`, `app.py`, `knowledge_base/market/international_logistics.md`
+
+---
+
 ### 技术要点
 - **RAG 相关性阈值**: 0.45（`config.py` 中 `RAG_SCORE_THRESHOLD` 参数）
 - **Embedding 模型**: BAAI/bge-small-zh-v1.5（本地 CPU），自动降级 OpenAI Compatible

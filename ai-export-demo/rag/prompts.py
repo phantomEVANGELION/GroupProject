@@ -61,6 +61,10 @@ MARKET_ANALYSIS_PROMPT = """你是一个专业的海外市场分析师。请基�
 2. 对每个市场分析：市场机会（高/中/低）、原因、进入风险
 3. 分析目标市场的消费者画像和购买行为
 4. 判断市场状态（蓝海/成长/红海）
+5. 市场规模：该品类在各目标市场的总体规模和增长率
+6. 头部企业：该品类的主要品牌及其市场份额
+7. 准入限制：需要满足的认证标准和合规要求
+8. 重要展会：该品类相关的国际展会信息
 
 【约束】
 - 如果上述知识库资料与当前产品品类明显不相关，请忽略并完全基于你自身的行业知识进行分析
@@ -84,7 +88,34 @@ MARKET_ANALYSIS_PROMPT = """你是一个专业的海外市场分析师。请基�
   ],
   "market_trend": "",
   "overall_note": "",
-  "sources": []
+  "sources": [],
+  "market_size": {{
+    "us": "（美国市场规模及增速）",
+    "eu": "（欧洲市场规模及增速）",
+    "global": "（全球市场规模及增速）",
+    "growth_rate": "（年增长率百分比）"
+  }},
+  "key_players": [
+    {{
+      "name": "（品牌/企业名称）",
+      "share": "（市场份额百分比或描述）"
+    }}
+  ],
+  "entry_requirements": [
+    {{
+      "market": "（目标市场）",
+      "certifications": ["（认证名称）"],
+      "notes": "（合规注意事项）"
+    }}
+  ],
+  "major_exhibitions": [
+    {{
+      "name": "（展会名称）",
+      "location": "（举办地点）",
+      "frequency": "（举办频率）",
+      "description": "（展会简介和参展价值）"
+    }}
+  ]
 }}"""
 
 
@@ -108,6 +139,7 @@ COMPETITOR_ANALYSIS_PROMPT = """你是一个专业的竞品分析师。请基于
 2. 分析每个竞品的定位、价格、优势和劣势
 3. 对比分析：我们的产品相对每个竞品的差异化机会
 4. 给出总体差异化策略建议
+5. 列出产品改进建议：为了让产品在竞争中脱颖而出，应该增加或强化哪些功能/特性
 
 【约束】
 - 如果上述知识库资料与当前产品品类明显不相关，请忽略并完全基于你自身的行业知识进行分析
@@ -129,7 +161,15 @@ COMPETITOR_ANALYSIS_PROMPT = """你是一个专业的竞品分析师。请基于
   ],
   "differentiation_opportunity": "",
   "overall_assessment": "",
-  "sources": []
+  "sources": [],
+  "recommended_improvements": [
+    {
+      "area": "（改进方向，如功能/材质/包装/定价等）",
+      "suggestion": "（具体建议）",
+      "impact": "high/medium/low",
+      "effort": "high/medium/low"
+    }
+  ]
 }}"""
 
 

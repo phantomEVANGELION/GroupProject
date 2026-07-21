@@ -23,12 +23,13 @@ import uvicorn
 from workflow.state import create_initial_state
 from workflow.nodes import (
     product_node, market_node, competitor_node,
-    strategy_node, content_node,
+    strategy_node, content_node, comprehensive_node,
 )
 from init_knowledge_base import init_market_kb, init_competitor_kb
 from app_format import (
     format_product, format_market, format_competitor,
     format_strategy, format_content_section,
+    format_comprehensive,
 )
 
 from rag.chroma_client import get_collection_count
@@ -87,11 +88,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .navbar { position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 1000;
           background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
           border-bottom: 1px solid #e2e8f0; display: flex; align-items: center;
-          padding: 0 20px; }
-.navbar .logo { font-weight: 700; font-size: 16px; color: #0f172a;
+          justify-content: center; padding: 0 20px; }
+.navbar .logo { position: absolute; left: 20px; font-weight: 700; font-size: 16px; color: #0f172a;
                 text-decoration: none; display: flex; align-items: center; gap: 6px; }
 .navbar .logo:hover { color: #3b82f6; }
-.nav-links { display: flex; gap: 4px; margin-left: auto; }
+.nav-links { display: flex; gap: 4px; }
 .nav-links a { text-decoration: none; padding: 8px 14px; border-radius: 8px;
                font-size: 14px; color: #64748b; transition: all .2s; white-space: nowrap; }
 .nav-links a:hover { background: #f1f5f9; color: #334155; }
@@ -465,7 +466,8 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 <span id="s2">⬜ 市场分析</span><span>→</span>
 <span id="s3">⬜ 竞品分析</span><span>→</span>
 <span id="s4">⬜ 营销策略</span><span>→</span>
-<span id="s5">⬜ 文案编写</span>
+<span id="s5">⬜ 文案编写</span><span>→</span>
+<span id="s6">⬜ 综合报告</span>
 </div>
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 <div class="progress-text" id="progressText">等待开始...</div>
@@ -896,15 +898,17 @@ function renderRateAnalysis(data, code, name) {
 }
 
 // ==================== Analysis Page (existing) ====================
-const TAB_NAMES = ["📋 产品分析","🌍 市场分析","⚔️ 竞品分析","🎯 营销策略","✍️ 文案编写"];
+const TOTAL_STEPS = 6;
+const TAB_NAMES = ["📋 产品分析","🌍 市场分析","⚔️ 竞品分析","🎯 营销策略","✍️ 文案编写","📋 综合报告"];
 const NOTIFY_MSG = {
     1: "✅ 产品分析生成完毕！",
     2: "🌍 市场分析生成完毕！",
     3: "⚔️ 竞品分析生成完毕！",
     4: "🎯 营销策略生成完毕！",
-    5: "✍️ 文案编写完毕！"
+    5: "✍️ 文案编写完毕！",
+    6: "📋 综合报告生成完毕！"
 };
-const STEP_NAMES = ["产品分析", "市场分析", "竞品分析", "营销策略", "文案编写"];
+const STEP_NAMES = ["产品分析", "市场分析", "竞品分析", "营销策略", "文案编写", "综合报告"];
 
 function showNotification(msg, isError) {
     const container = document.getElementById("notificationContainer");
@@ -929,13 +933,13 @@ function loadSample() {
 }
 
 function setProgress(step) {
-    const pct = Math.min(Math.round((step - 1) / 5 * 100), 100);
+    const pct = Math.min(Math.round((step - 1) / TOTAL_STEPS * 100), 100);
     document.getElementById("progressFill").style.width = pct + "%";
     const labels = ["等待开始...", "📋 正在分析产品资料...", "🌍 正在分析市场数据...",
                     "⚔️ 正在分析竞品信息...", "🎯 正在制定营销策略...",
-                    "✍️ 正在编写营销文案...", "✅ 分析完成！"];
-    document.getElementById("progressText").textContent = labels[Math.min(step, 6)] || "";
-    for (let i = 1; i <= 5; i++) {
+                    "✍️ 正在编写营销文案...", "📋 正在生成综合报告...", "✅ 分析完成！"];
+    document.getElementById("progressText").textContent = labels[Math.min(step, TOTAL_STEPS + 1)] || "";
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
         const el = document.getElementById("s" + i);
         if (i < step) { el.className = "done"; el.innerHTML = "✅ " + STEP_NAMES[i - 1]; }
         else if (i === step) { el.className = "current"; el.innerHTML = "🔄 " + STEP_NAMES[i - 1]; }
@@ -1000,9 +1004,9 @@ function renderTabContent(index, html) {
 
 function handleStreamEvent(event) {
     var step = event.step;
-    if (step === 6) {
+    if (step === TOTAL_STEPS + 1) {
         document.getElementById("analyzeBtn").disabled = false;
-        setProgress(6);
+        setProgress(TOTAL_STEPS + 1);
         if (event.errors && event.errors.length > 0) {
             var errDiv = document.createElement("div");
             errDiv.className = "error-box";
@@ -1320,6 +1324,7 @@ async def analyze(request: Request):
             "email": format_content_section(state, "email"),
             "live": format_content_section(state, "live"),
         },
+        format_comprehensive(state),
     ]
 
     return {"tabs": tabs, "errors": errors}
@@ -1348,6 +1353,7 @@ async def analyze_stream(request: Request):
             ("competitor", competitor_node, format_competitor),
             ("strategy", strategy_node, format_strategy),
             ("content", content_node, None),
+            ("comprehensive", comprehensive_node, format_comprehensive),
         ]
 
         for i, (name, node_func, format_func) in enumerate(steps, 1):
@@ -1363,6 +1369,8 @@ async def analyze_stream(request: Request):
                     "email": format_content_section(state, "email"),
                     "live": format_content_section(state, "live"),
                 }
+            elif i == 6:
+                html = format_func(state) if format_func else ""
             else:
                 html = format_func(state) if format_func else ""
 
@@ -1370,7 +1378,7 @@ async def analyze_stream(request: Request):
             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
         # 最终完成事件
-        final = {"step": 6, "status": "complete", "errors": state.get("errors", [])}
+        final = {"step": 7, "status": "complete", "errors": state.get("errors", [])}
         yield f"data: {json.dumps(final, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

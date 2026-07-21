@@ -9,6 +9,7 @@ from workflow.nodes import (
     competitor_node,
     strategy_node,
     content_node,
+    comprehensive_node,
 )
 
 
@@ -26,6 +27,7 @@ def build_workflow() -> StateGraph:
     builder.add_node("competitor_analysis", competitor_node)
     builder.add_node("strategy", strategy_node)
     builder.add_node("content", content_node)
+    builder.add_node("comprehensive", comprehensive_node)
 
     # ---- 连接边 ----
     builder.add_edge(START, "product_analysis")
@@ -33,7 +35,8 @@ def build_workflow() -> StateGraph:
     builder.add_edge("market_analysis", "competitor_analysis")
     builder.add_edge("competitor_analysis", "strategy")
     builder.add_edge("strategy", "content")
-    builder.add_edge("content", END)
+    builder.add_edge("content", "comprehensive")
+    builder.add_edge("comprehensive", END)
 
     return builder
 
