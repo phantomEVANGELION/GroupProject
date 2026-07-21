@@ -162,12 +162,12 @@ COMPETITOR_ANALYSIS_PROMPT = """你是一个专业的竞品分析师。请基于
   "overall_assessment": "",
   "sources": [],
   "recommended_improvements": [
-    {
+    {{
       "area": "（改进方向，如功能/材质/包装/定价等）",
       "suggestion": "（具体建议）",
       "impact": "high/medium/low",
       "effort": "high/medium/low"
-    }
+    }}
   ]
 }}"""
 
