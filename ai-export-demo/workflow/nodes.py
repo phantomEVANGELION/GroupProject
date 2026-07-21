@@ -262,12 +262,6 @@ def market_node(state: WorkflowState) -> WorkflowState:
     max_score = max(rag_scores) if rag_scores else 0.0
     is_relevant = max_score >= config.RAG_SCORE_THRESHOLD if rag_docs else False
 
-    if rag_docs and not is_relevant:
-        state["errors"].append(
-            f"market_node: 知识库数据与当前品类不匹配（最高相关性 {max_score:.2f}，阈值 {config.RAG_SCORE_THRESHOLD}），"
-            "已降级到 LLM 内置知识"
-        )
-
     # ---- 3. 准备 RAG 上下文 ----
     if is_relevant:
         rag_context = ""
@@ -281,7 +275,7 @@ def market_node(state: WorkflowState) -> WorkflowState:
             "覆盖目标市场推荐、消费者洞察、市场趋势等维度。\n"
             "对于每项结论，请标注可信度：高/中/低。不要编造具体数据。）"
         )
-        sources = []
+        sources = ["AI 行业知识（本地知识库暂无该品类数据）"]
 
     # ---- 3. 调用 LLM ----
     product_analysis_str = json.dumps(product_analysis, ensure_ascii=False, indent=2)
@@ -363,12 +357,6 @@ def competitor_node(state: WorkflowState) -> WorkflowState:
     max_score = max(rag_scores) if rag_scores else 0.0
     is_relevant = max_score >= config.RAG_SCORE_THRESHOLD if rag_docs else False
 
-    if rag_docs and not is_relevant:
-        state["errors"].append(
-            f"competitor_node: 知识库数据与当前品类不匹配（最高相关性 {max_score:.2f}，阈值 {config.RAG_SCORE_THRESHOLD}），"
-            "已降级到 LLM 内置知识"
-        )
-
     # ---- 3. 准备 RAG 上下文 ----
     if is_relevant:
         rag_context = ""
@@ -382,7 +370,7 @@ def competitor_node(state: WorkflowState) -> WorkflowState:
             "覆盖该品类的主要品牌、价格区间、定位、优势和劣势等维度。\n"
             "对于每项结论，请标注可信度：高/中/低。不要编造不存在的品牌或数据。）"
         )
-        sources = []
+        sources = ["AI 行业知识（本地知识库暂无该品类数据）"]
 
     # ---- 3. 调用 LLM ----
     product_analysis_str = json.dumps(product_analysis, ensure_ascii=False, indent=2)

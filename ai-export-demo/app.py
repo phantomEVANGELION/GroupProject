@@ -170,6 +170,7 @@ td { vertical-align: top; }
 /* ---- 通用 ---- */
 .sources { font-size: 12px; color: #94a3b8; margin-top: 12px; padding-top: 8px;
            border-top: 1px solid #e2e8f0; }
+.sources .fallback { color: #b0b8c4; font-style: italic; font-size: 11px; }
 blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius: 4px;
              padding: 12px 16px; margin: 8px 0; color: #475569; font-size: 14px; }
 .empty-state { color: #94a3b8; padding: 20px; text-align: center; }

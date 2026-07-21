@@ -6,7 +6,14 @@ import json
 def _sources_footer(sources: list) -> str:
     if not sources:
         return ""
-    src_str = "、".join(sources)
+    # 将 AI 知识降级提示用浅色斜体包裹
+    parts = []
+    for s in sources:
+        if "AI 行业知识" in s:
+            parts.append(f'<span class="fallback">{s}</span>')
+        else:
+            parts.append(s)
+    src_str = "、".join(parts)
     return f'<hr><p class="sources">📎 <strong>数据来源</strong>: {src_str}</p>'
 
 
