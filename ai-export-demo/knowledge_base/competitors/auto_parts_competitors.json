@@ -1,0 +1,61 @@
+{
+  "category": "汽车配件",
+  "description": "汽车配件品类主要竞品数据，覆盖电子配件到维修保养件",
+  "competitors": [
+    {
+      "name": "ANKER PowerDrive 2",
+      "brand": "ANKER (安克创新)",
+      "price_range": "$15-$35",
+      "position": "中高端车载充电",
+      "target_users": "有车一族、数码爱好者、长途驾驶用户",
+      "strengths": ["ANKER 品牌知名度高", "充电技术领先（GaN）", "亚马逊运营能力强", "质量口碑好"],
+      "weaknesses": ["品类集中在充电配件", "品牌尚未延伸到汽车深度配件", "价格高于白牌"],
+      "market_share": "北美车载充电器约 15%",
+      "our_opportunity": "拓展车载智能配件生态（无线充电/HUD/车载空气净化器）"
+    },
+    {
+      "name": "VIOFO A119 Mini 2",
+      "brand": "VIOFO",
+      "price_range": "$119-$179",
+      "position": "中高端行车记录仪",
+      "target_users": "注重画质和可靠性的车主",
+      "strengths": ["画质同价位领先", "Sony STARVIS 传感器", "耐高温稳定"],
+      "weaknesses": ["App 体验一般", "设计不够时尚", "品牌营销力度弱"],
+      "market_share": "全球行车记录仪约 8%",
+      "our_opportunity": "以更好的 App 体验和设计感进入，主打 Amazon 渠道"
+    },
+    {
+      "name": "Bosch QuietCast Brake Pads",
+      "brand": "Bosch",
+      "price_range": "$35-$75",
+      "position": "中高端刹车片",
+      "target_users": "DIY 换刹车车主、维修店",
+      "strengths": ["Bosch 品牌信誉", "品质稳定", "OE 配套经验", "型号覆盖广"],
+      "weaknesses": ["价格偏高", "部分型号缺货", "渠道管理复杂"],
+      "market_share": "全球售后刹车市场约 20%",
+      "our_opportunity": "主打性价比 AM 路线，先覆盖畅销车型的刹车/滤清器等高频更换件"
+    },
+    {
+      "name": "LEDGlow RGB Underglow Kit",
+      "brand": "LEDGlow",
+      "price_range": "$79-$199",
+      "position": "改装车灯中端",
+      "target_users": "改装爱好者、年轻车主",
+      "strengths": ["产品线丰富", "App 控制颜色", "安装指导详细"],
+      "weaknesses": ["法律合规差异大", "安装难度较高", "售后客服响应慢"],
+      "market_share": "北美 LED 改装灯约 20%",
+      "our_opportunity": "做合规性更好的改装灯，增加即插即用设计降低安装门槛"
+    },
+    {
+      "name": "WeatherTech FloorLiners",
+      "brand": "WeatherTech",
+      "price_range": "$109-$229",
+      "position": "高端定制汽车脚垫",
+      "target_users": "注重车内清洁和保值的中高端车主",
+      "strengths": ["定制贴合度极高", "美国制造", "品牌溢价强"],
+      "weaknesses": ["价格极高", "款式偏传统", "仅有脚垫/后备箱垫品类"],
+      "market_share": "北美汽车脚垫高端市场约 25%",
+      "our_opportunity": "以定制化+高性价比在 Amazon 切入，逐步扩展到座椅套等内饰品类"
+    }
+  ]
+}

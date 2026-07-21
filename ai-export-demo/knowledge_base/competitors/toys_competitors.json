@@ -1,0 +1,61 @@
+{
+  "category": "玩具",
+  "description": "玩具品类主要竞品数据，覆盖传统玩具到益智教育",
+  "competitors": [
+    {
+      "name": "LEGO Icons",
+      "brand": "LEGO Group",
+      "price_range": "$39-$699",
+      "position": "高端拼搭玩具",
+      "target_users": "全年龄段，成人收藏家（Kidult）增长显著",
+      "strengths": ["品牌忠诚度极高", "IP 授权体系成熟", "品质标准行业最高", "成人线增长强劲"],
+      "weaknesses": ["价格昂贵", "专利到期后竞争加剧", "仿制品质量提升"],
+      "market_share": "全球拼搭玩具约 60%",
+      "our_opportunity": "以兼容 LEGO 的性价比产品切入，聚焦特定主题（国风/原创IP）形成差异化"
+    },
+    {
+      "name": "Barbie Dreamhouse",
+      "brand": "Mattel",
+      "price_range": "$99-$249",
+      "position": "中高端玩偶",
+      "target_users": "3-10 岁女童",
+      "strengths": ["Barbie 品牌 IP 强大", "电影带动效应显著", "全球渠道覆盖"],
+      "weaknesses": ["品牌形象传统", "价格偏高", "IP 依赖度强"],
+      "market_share": "全球玩偶市场约 25%",
+      "our_opportunity": "关注包容性/多样性主题的玩偶，差异化定位（STEM 女孩/职业主题）"
+    },
+    {
+      "name": "Transformers Studio Series",
+      "brand": "Hasbro",
+      "price_range": "$24-$149",
+      "position": "中高端变形玩具",
+      "target_users": "6-14 岁男童及成年收藏者",
+      "strengths": ["经典 IP 品牌", "变形设计专利", "电影/动画联动"],
+      "weaknesses": ["品类创新不足", "过度依赖续集电影", "品质控制不稳定"],
+      "market_share": "全球动作玩具约 15%",
+      "our_opportunity": "新兴 IP（国产动画/游戏）周边玩具，性价比更高的可动玩具"
+    },
+    {
+      "name": "VTech KidiZoom Smartwatch",
+      "brand": "VTech",
+      "price_range": "$39-$79",
+      "position": "儿童教育科技",
+      "target_users": "4-10 岁儿童，关注教育价值的家长",
+      "strengths": ["教育科技品类领先", "家长品牌信任度高", "产品安全合规好"],
+      "weaknesses": ["设计偏幼龄", "技术规格落后消费电子", "App 生态封闭"],
+      "market_share": "全球儿童教育电子约 20%",
+      "our_opportunity": "结合 AI 互动（语音）的教育玩具，定价更具竞争力"
+    },
+    {
+      "name": "Funko Pop!",
+      "brand": "Funko",
+      "price_range": "$10-$30",
+      "position": "低价收藏公仔",
+      "target_users": "IP 粉丝、成年收藏者",
+      "strengths": ["价格亲民", "IP 授权数量最多", "收藏/交换文化成熟"],
+      "weaknesses": ["做工简单", "市场过度饱和", "部分 IP 热度消退"],
+      "market_share": "全球收藏公仔约 15%",
+      "our_opportunity": "在 Funko 和高端手办之间定位中端，做工更精细但价格合理"
+    }
+  ]
+}

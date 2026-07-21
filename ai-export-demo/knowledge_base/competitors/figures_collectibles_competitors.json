@@ -1,0 +1,61 @@
+{
+  "category": "手办潮玩",
+  "description": "手办潮玩品类主要竞品数据，覆盖收藏手办到盲盒潮玩",
+  "competitors": [
+    {
+      "name": "POPMART Molly Series",
+      "brand": "POPMART（泡泡玛特）",
+      "price_range": "$12-$20（盲盒）/ $50-$200（大娃）",
+      "position": "中端潮玩盲盒",
+      "target_users": "18-35 岁女性为主、潮玩收藏爱好者",
+      "strengths": ["盲盒品类开创者", "IP 矩阵丰富（Molly/Dimoo/Skullpanda）", "海外扩张快", "线下门店体验好"],
+      "weaknesses": ["盲盒监管趋严风险", "IP 依赖度高", "海外品牌认知度仍低", "产品生命周期有限"],
+      "market_share": "全球潮玩盲盒约 15%",
+      "our_opportunity": "在本土 IP 文化（国风/原创）上做差异化，利用 Amazon + TikTok 双渠道出海"
+    },
+    {
+      "name": "Bandai Tamashii Nations",
+      "brand": "Bandai Namco",
+      "price_range": "$35-$350",
+      "position": "高端日系收藏手办",
+      "target_users": "核心二次元粉丝、高达/龙珠/海贼王收藏者",
+      "strengths": ["日本顶级 IP 持有者", "制作工艺精良", "收藏价值高", "全球粉丝基础"],
+      "weaknesses": ["价格昂贵", "限量发售导致二级市场溢价", "欧美渠道有限"],
+      "market_share": "全球日系手办市场约 40%",
+      "our_opportunity": "以热门国产动漫/游戏 IP 为切入点，用相对低价和更好的供货稳定性竞争"
+    },
+    {
+      "name": "Hot Toys 1/6th Scale",
+      "brand": "Hot Toys (Sideshow)",
+      "price_range": "$220-$500",
+      "position": "超高端影视收藏手办",
+      "target_users": "35-50 岁高收入影视收藏爱好者",
+      "strengths": ["真人头雕技术行业顶尖", "细节还原极致", "漫威/DC 授权", "保值和升值潜力"],
+      "weaknesses": ["价格极高", "出货周期长（1-2年）", "占空间大", "受众细分"],
+      "market_share": "全球高端影视收藏品约 20%",
+      "our_opportunity": "在 1/12 比例可动人偶市场做精品，价格和体积更适合大众收藏"
+    },
+    {
+      "name": "Funko Pop!",
+      "brand": "Funko",
+      "price_range": "$10-$30",
+      "position": "低价收藏公仔",
+      "target_users": "大众 IP 粉丝、轻度收藏者",
+      "strengths": ["价格低受众广", "IP 授权数量超 1000", "收藏交换社区活跃"],
+      "weaknesses": ["做工简单同质化", "市场过度饱和", "部分 IP 热度消退快"],
+      "market_share": "全球低价收藏公仔约 30%",
+      "our_opportunity": "在 Funko 和高端手办之间做中端精品，Better than Funko, cheaper than Hot Toys"
+    },
+    {
+      "name": "BE@RBRICK 400%",
+      "brand": "Medicom Toy",
+      "price_range": "$100-$400",
+      "position": "高端潮流艺术玩具",
+      "target_users": "潮流文化收藏者、设计师品牌追随者",
+      "strengths": ["潮玩艺术定位", "联名合作广泛（Kaws/CLOT/Fragment）", "二级市场流动性强"],
+      "weaknesses": ["价格被炒作虚高", "设计创新有限（熊形不变）", "购买渠道混乱"],
+      "market_share": "全球潮流艺术玩具约 10%",
+      "our_opportunity": "利用中国供应链优势做设计师联名潮玩，价格更合理的入门级艺术玩具"
+    }
+  ]
+}

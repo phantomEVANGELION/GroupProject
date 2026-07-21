@@ -1,0 +1,61 @@
+{
+  "category": "小家电",
+  "description": "小家电品类主要竞品数据，覆盖高端到入门市场",
+  "competitors": [
+    {
+      "name": "Dyson V15 Detect",
+      "brand": "Dyson",
+      "price_range": "$649-$749",
+      "position": "高端旗舰",
+      "target_users": "高收入家庭、注重科技感的消费者",
+      "strengths": ["品牌影响力强", "吸力技术领先", "激光探测灰尘技术", "售后口碑好"],
+      "weaknesses": ["价格极高", "电池续航一般（60min）", "配件价格昂贵", "产品更新迭代快"],
+      "market_share": "全球高端吸尘器市场约 25%",
+      "our_opportunity": "在同等性能基础上提供更具竞争力的价格，配件兼容性更好"
+    },
+    {
+      "name": "Instant Pot Duo Plus",
+      "brand": "Instant Brands",
+      "price_range": "$79-$109",
+      "position": "中端多功能",
+      "target_users": "注重烹饪效率的家庭用户",
+      "strengths": ["多功能集成（压力锅/慢炖/米饭）", "品牌认知度高", "社区食谱生态丰富"],
+      "weaknesses": ["功能虽多但单功能表现不突出", "体积偏大", "内胆涂层耐用性争议"],
+      "market_share": "北美多功能锅品类约 35%",
+      "our_opportunity": "专注单一功能做到极致（如空气炸），或加入智能互联差异化"
+    },
+    {
+      "name": "Ninja Air Fryer Pro",
+      "brand": "SharkNinja",
+      "price_range": "$89-$129",
+      "position": "中端高性价比",
+      "target_users": "追求健康饮食的家庭、烹饪爱好者",
+      "strengths": ["空气炸品类头部品牌", "产品线丰富", "性价比高", "功能实用"],
+      "weaknesses": ["设计风格单一", "高端型号不足", "APP 生态缺失"],
+      "market_share": "北美空气炸锅市场约 30%",
+      "our_opportunity": "加入智能食谱推荐功能，差异化设计语言吸引年轻用户"
+    },
+    {
+      "name": "iRobot Roomba j9+",
+      "brand": "iRobot",
+      "price_range": "$599-$899",
+      "position": "高端扫地机器人",
+      "target_users": "忙碌的上班族、高收入家庭",
+      "strengths": ["导航算法领先", "自动集尘", "品牌信任度高"],
+      "weaknesses": ["价格高昂", "中国品牌同价位功能更丰富", "创新速度放缓"],
+      "market_share": "全球扫地机器人约 25%",
+      "our_opportunity": "同等配置下价格更低，App 体验和本地化更优"
+    },
+    {
+      "name": "Philips Airfryer XXL",
+      "brand": "Philips",
+      "price_range": "$149-$249",
+      "position": "中高端空气炸锅",
+      "target_users": "注重品牌和品质的家庭",
+      "strengths": ["飞利浦品牌信赖度", "海星底盘技术", "全球渠道覆盖"],
+      "weaknesses": ["价格高于同类竞品", "功能创新不足", "外观设计传统"],
+      "market_share": "全球空气炸锅约 20%",
+      "our_opportunity": "在性价比和设计创新上寻求突破，年轻化品牌定位"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "category": "宠物用品",
+  "description": "宠物用品品类主要竞品数据，覆盖智能设备到日常用品",
+  "competitors": [
+    {
+      "name": "Furbo 360 Dog Camera",
+      "brand": "Furbo (Tomofun)",
+      "price_range": "$249-$349",
+      "position": "高端宠物智能摄像头",
+      "target_users": "上班族犬主，希望远程互动和监控宠物",
+      "strengths": ["品类开创者", "投食+摄像头一体化", "AI 行为识别（吠叫/活动）"],
+      "weaknesses": ["价格高", "订阅服务额外收费", "竞品快速追赶"],
+      "market_share": "宠物摄像头市场约 25%",
+      "our_opportunity": "以性价比优势切入，基础功能免费+高级功能订阅的模式"
+    },
+    {
+      "name": "Litter-Robot 4",
+      "brand": "Whisker",
+      "price_range": "$499-$699",
+      "position": "高端自动猫砂盆",
+      "target_users": "多猫家庭、注重便利性的猫主",
+      "strengths": ["自动清洁体验领先", "品牌忠诚度高", "App 远程监控"],
+      "weaknesses": ["价格极高", "体积庞大", "维修成本高"],
+      "market_share": "自动猫砂盆市场约 35%",
+      "our_opportunity": "以 1/2 价格提供类似功能，更紧凑的设计适合公寓养猫"
+    },
+    {
+      "name": "KONG Classic",
+      "brand": "KONG Company",
+      "price_range": "$8-$18",
+      "position": "中端宠物玩具",
+      "target_users": "各类型犬主，特别是高能量犬需要消遣",
+      "strengths": ["品牌认知极高", "耐咬橡胶专利", "宠物行为专家推荐"],
+      "weaknesses": ["产品线单一", "创新缓慢", "仿品冲击"],
+      "market_share": "全球狗玩具约 20%",
+      "our_opportunity": "在耐咬玩具基础上加入互动/智能元素，或设计更细分场景的玩具"
+    },
+    {
+      "name": "PetSafe Treat Pouch",
+      "brand": "PetSafe (Radio Systems)",
+      "price_range": "$10-$20",
+      "position": "宠物训练配件中端",
+      "target_users": "狗主人、训练爱好者",
+      "strengths": ["品类齐全", "渠道覆盖广", "品牌可信度高"],
+      "weaknesses": ["设计普通", "缺乏创新亮点", "中国制造但品牌溢价高"],
+      "market_share": "北美宠物训练用品约 20%",
+      "our_opportunity": "在宠物户外出行装备（背包/推车/水壶）品类做创新设计品牌"
+    },
+    {
+      "name": "Petkit FreshElement Solo",
+      "brand": "Petkit（小佩）",
+      "price_range": "$49-$89",
+      "position": "中端智能喂食器",
+      "target_users": "都市养宠人群、需要定时喂食的猫主",
+      "strengths": ["设计感强", "App 体验好", "性价比高", "国内经验丰富"],
+      "weaknesses": ["海外品牌认知度不足", "售后覆盖有限", "部分功能需改进"],
+      "market_share": "全球智能喂食器约 15%",
+      "our_opportunity": "以设计+科技为核心卖点，强化海外品牌故事和本地售后"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "category": "美妆个护",
+  "description": "美妆个护品类主要竞品数据，覆盖大众到高端市场",
+  "competitors": [
+    {
+      "name": "L'Oreal Paris Revitalift",
+      "brand": "L'Oreal",
+      "price_range": "$15-$35",
+      "position": "大众抗衰老",
+      "target_users": "30-55 岁女性，注重性价比的抗衰需求",
+      "strengths": ["全球化研发实力", "品牌知名度极高", "渠道渗透广（超市/药房/线上）"],
+      "weaknesses": ["成分创新不如小众品牌", "高端线被集团其他品牌分流"],
+      "market_share": "全球大众护肤约 12%",
+      "our_opportunity": "聚焦成分透明度和 Clean Beauty 卖点，在年轻消费者中建立信任"
+    },
+    {
+      "name": "The Ordinary Niacinamide",
+      "brand": "DECIEM (Estee Lauder)",
+      "price_range": "$5-$15",
+      "position": "性价比成分护肤",
+      "target_users": "成分党、年轻护肤爱好者",
+      "strengths": ["成分透明", "低价高质口碑", "社交媒体话题性强"],
+      "weaknesses": ["包装简陋", "产品肤感一般", "品牌形象不够高端"],
+      "market_share": "全球成分护肤约 8%",
+      "our_opportunity": "在成分透明的基础上提升使用体验（质地/包装），定价略高但物有所值"
+    },
+    {
+      "name": "CeraVe Moisturizing Cream",
+      "brand": "L'Oreal",
+      "price_range": "$10-$20",
+      "position": "药妆基础护理",
+      "target_users": "敏感肌人群、皮肤科推荐追求者",
+      "strengths": ["皮肤科医生推荐品牌", "配方温和有效", "价格合理"],
+      "weaknesses": ["产品线单一", "品牌调性偏医疗", "社交传播力弱"],
+      "market_share": "美国药妆渠道约 15%",
+      "our_opportunity": "在敏感肌赛道建立专业形象，加入亚洲护肤理念（积雪草/神经酰胺）"
+    },
+    {
+      "name": "COSRX Advanced Snail Mucin",
+      "brand": "COSRX",
+      "price_range": "$12-$25",
+      "position": "K-beauty 中端",
+      "target_users": "20-35 岁护肤爱好者、K-beauty 追随者",
+      "strengths": ["K-beauty 代表品牌", "明星产品口碑强", "成分新奇特"],
+      "weaknesses": ["品牌故事在西方不够清晰", "部分成分受众窄", "渠道覆盖有限"],
+      "market_share": "全球 K-beauty 护肤约 5%",
+      "our_opportunity": "将中国特色成分（如绿茶/灵芝）故事化包装，复制 K-beauty 成功路径"
+    },
+    {
+      "name": "Farmacy Honey Halo",
+      "brand": "Farmacy (P&G)",
+      "price_range": "$38-$56",
+      "position": "中高端纯净护肤",
+      "target_users": "25-45 岁注重天然成分的女性",
+      "strengths": ["Clean Beauty 定位清晰", "农场到面部故事好", "丝芙兰渠道强势"],
+      "weaknesses": ["价格偏高", "部分市场认知度低", "依赖单一渠道"],
+      "market_share": "全球 Clean Beauty 约 3%",
+      "our_opportunity": "做中国成分故事（如枸杞/普洱茶护肤），定价在有竞争力的中端区间"
+    }
+  ]
+}
