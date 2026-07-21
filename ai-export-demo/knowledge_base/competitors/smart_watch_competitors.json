@@ -1,0 +1,112 @@
+{
+  "category": "智能手表",
+  "description": "智能手表品类主要竞品数据，覆盖高端到入门市场",
+  "competitors": [
+    {
+      "name": "Apple Watch Series 9",
+      "brand": "Apple",
+      "price_range": "$399-$499",
+      "position": "高端旗舰",
+      "target_users": "苹果生态用户、高收入人群、科技爱好者",
+      "strengths": [
+        "品牌影响力极强",
+        "iOS 生态深度绑定",
+        "健康监测功能全面（ECG、血氧）",
+        "App Store 应用生态丰富"
+      ],
+      "weaknesses": [
+        "价格昂贵，入门款 $399",
+        "续航仅 18-36 小时",
+        "仅兼容 iOS，流失大量 Android 用户",
+        "设计更新迭代慢"
+      ],
+      "market_share": "全球智能手表市场约 30%",
+      "our_opportunity": "续航优势明显（7天 vs 1.5天），价格仅为 1/5，覆盖 Android 用户群体"
+    },
+    {
+      "name": "Samsung Galaxy Watch 6",
+      "brand": "Samsung",
+      "price_range": "$299-$399",
+      "position": "高端/中高端",
+      "target_users": "Android 用户、三星生态用户、科技爱好者",
+      "strengths": [
+        "Wear OS 生态兼容性好",
+        "屏幕素质优秀",
+        "旋转表圈交互创新",
+        "健康监测功能全面"
+      ],
+      "weaknesses": [
+        "续航 1.5-2 天，仍偏短",
+        "价格偏高",
+        "部分功能仅限三星手机",
+        "充电速度慢"
+      ],
+      "market_share": "全球智能手表市场约 10%",
+      "our_opportunity": "续航 3 倍于 Galaxy Watch，价格更有竞争力，兼容所有 Android 手机"
+    },
+    {
+      "name": "Garmin Venu 3",
+      "brand": "Garmin",
+      "price_range": "$449-$499",
+      "position": "高端运动专业",
+      "target_users": "专业运动爱好者、户外运动者、跑步/骑行/游泳人群",
+      "strengths": [
+        "运动数据精准度高",
+        "GPS 性能行业领先",
+        "续航优秀（14天）",
+        "专业运动分析功能强"
+      ],
+      "weaknesses": [
+        "价格高",
+        "智能功能有限（非 Wear OS）",
+        "屏幕素质一般",
+        "设计偏运动，商务场景不适用",
+        "应用生态封闭"
+      ],
+      "market_share": "全球高端运动手表市场约 15%",
+      "our_opportunity": "价格低于 Garmin，功能覆盖运动+日常双场景，AMOLED 屏幕更出色"
+    },
+    {
+      "name": "Amazfit Balance",
+      "brand": "Amazfit（华米）",
+      "price_range": "$149-$229",
+      "position": "中端性价比",
+      "target_users": "预算有限的年轻用户、轻运动用户",
+      "strengths": [
+        "续航长（7-14天）",
+        "性价比高",
+        "健康监测功能丰富",
+        "外观设计不错"
+      ],
+      "weaknesses": [
+        "品牌认知度有限（海外）",
+        "运动数据准确度中等",
+        "App 体验和生态不够成熟",
+        "售后支持有限"
+      ],
+      "market_share": "全球中端穿戴市场约 8%",
+      "our_opportunity": "类似定位但需在品牌故事和售后上超越，突出独特差异化卖点"
+    },
+    {
+      "name": "Xiaomi Smart Band 8 Pro",
+      "brand": "Xiaomi",
+      "price_range": "$60-$80",
+      "position": "入门高性价比",
+      "target_users": "预算非常有限的年轻用户、首次尝试智能穿戴的用户",
+      "strengths": [
+        "价格极低",
+        "续航长（14天）",
+        "小米品牌知名度高",
+        "销量大、用户基数广"
+      ],
+      "weaknesses": [
+        "功能简单（手环形态）",
+        "屏幕小、交互有限",
+        "健康监测精度一般",
+        "定位低端、品牌溢价低"
+      ],
+      "market_share": "全球入门穿戴市场约 12%",
+      "our_opportunity": "从手环升级到手表形态，功能和体验全面超越，价格差距不大时用户倾向升级"
+    }
+  ]
+}
