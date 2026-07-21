@@ -22,6 +22,7 @@ import config
 from rag.chroma_client import (
     add_documents,
     similarity_search,
+    similarity_search_with_relevance_scores,
     get_collection_count,
     reset_collection,
 )
@@ -226,7 +227,9 @@ def market_node(state: WorkflowState) -> WorkflowState:
     """市场分析节点。
 
     1. 从 market_kb 检索品类相关市场数据
-    2. LLM 分析：推荐目标国家、市场机会、风险
+    2. 通过相关性分数判断数据是否与产品品类匹配
+    3. 不匹配时降级到 LLM 内置知识
+    4. LLM 分析：推荐目标国家、市场机会、风险
     """
     product_name = state.get("product_name", "")
     product_analysis = state.get("product_analysis", {}) or {}
@@ -236,30 +239,49 @@ def market_node(state: WorkflowState) -> WorkflowState:
     level2 = category.get("level2", "") if isinstance(category, dict) else ""
     level1 = category.get("level1", "") if isinstance(category, dict) else ""
 
-    # ---- 1. 检索市场知识库 ----
+    # ---- 1. 检索市场知识库（带相关性分数） ----
     rag_docs: list[Document] = []
+    rag_scores: list[float] = []
     try:
         query = f"{level1} {level2} {product_name} 市场分析 出口"
-        rag_docs = similarity_search(config.COLLECTION_MARKET, query, k=config.RAG_TOP_K)
+        docs_with_scores = similarity_search_with_relevance_scores(
+            config.COLLECTION_MARKET, query, k=config.RAG_TOP_K
+        )
 
-        # 如果检索结果太少，用更宽泛的 query 再试一次
-        if len(rag_docs) < 2:
-            rag_docs = similarity_search(
+        if len(docs_with_scores) < 2:
+            docs_with_scores = similarity_search_with_relevance_scores(
                 config.COLLECTION_MARKET, f"{product_name} 海外市场", k=config.RAG_TOP_K
             )
+
+        rag_docs = [d for d, _ in docs_with_scores]
+        rag_scores = [s for _, s in docs_with_scores]
     except Exception as e:
         state["errors"].append(f"market_node: 检索失败: {e}")
 
-    # ---- 2. 准备 RAG 上下文 ----
-    rag_context = ""
-    for i, doc in enumerate(rag_docs):
-        src = doc.metadata.get("source", "未知")
-        rag_context += f"[片段 {i+1}] (来源: {src})\n{doc.page_content}\n\n"
+    # ---- 2. 判断检索结果是否匹配品类 ----
+    max_score = max(rag_scores) if rag_scores else 0.0
+    is_relevant = max_score >= config.RAG_SCORE_THRESHOLD if rag_docs else False
 
-    if not rag_context.strip():
-        rag_context = "（知识库中暂无该品类的详细市场数据，请基于行业通用知识进行分析，并标注为初步判断）"
+    if rag_docs and not is_relevant:
+        state["errors"].append(
+            f"market_node: 知识库数据与当前品类不匹配（最高相关性 {max_score:.2f}，阈值 {config.RAG_SCORE_THRESHOLD}），"
+            "已降级到 LLM 内置知识"
+        )
 
-    sources = _collect_sources(rag_docs)
+    # ---- 3. 准备 RAG 上下文 ----
+    if is_relevant:
+        rag_context = ""
+        for i, doc in enumerate(rag_docs):
+            src = doc.metadata.get("source", "未知")
+            rag_context += f"[片段 {i+1}] (来源: {src})\n{doc.page_content}\n\n"
+        sources = _collect_sources(rag_docs)
+    else:
+        rag_context = (
+            "（本地知识库中暂无该品类的市场数据。请完全基于你自身的行业知识进行分析，\n"
+            "覆盖目标市场推荐、消费者洞察、市场趋势等维度。\n"
+            "对于每项结论，请标注可信度：高/中/低。不要编造具体数据。）"
+        )
+        sources = []
 
     # ---- 3. 调用 LLM ----
     product_analysis_str = json.dumps(product_analysis, ensure_ascii=False, indent=2)
@@ -307,7 +329,9 @@ def competitor_node(state: WorkflowState) -> WorkflowState:
     """竞品分析节点。
 
     1. 从 competitor_kb 检索品类对应竞品数据
-    2. LLM 对比分析：竞品定位、优劣势、差异化机会
+    2. 通过相关性分数判断数据是否与产品品类匹配
+    3. 不匹配时降级到 LLM 内置知识
+    4. LLM 对比分析：竞品定位、优劣势、差异化机会
     """
     product_name = state.get("product_name", "")
     product_analysis = state.get("product_analysis", {}) or {}
@@ -316,29 +340,49 @@ def competitor_node(state: WorkflowState) -> WorkflowState:
     level2 = category.get("level2", "") if isinstance(category, dict) else ""
     level1 = category.get("level1", "") if isinstance(category, dict) else ""
 
-    # ---- 1. 检索竞品知识库 ----
+    # ---- 1. 检索竞品知识库（带相关性分数） ----
     rag_docs: list[Document] = []
+    rag_scores: list[float] = []
     try:
         query = f"{level1} {level2} {product_name} 竞品"
-        rag_docs = similarity_search(config.COLLECTION_COMPETITOR, query, k=config.RAG_TOP_K)
+        docs_with_scores = similarity_search_with_relevance_scores(
+            config.COLLECTION_COMPETITOR, query, k=config.RAG_TOP_K
+        )
 
-        if len(rag_docs) < 2:
-            rag_docs = similarity_search(
+        if len(docs_with_scores) < 2:
+            docs_with_scores = similarity_search_with_relevance_scores(
                 config.COLLECTION_COMPETITOR, f"{product_name} 竞品对比", k=config.RAG_TOP_K
             )
+
+        rag_docs = [d for d, _ in docs_with_scores]
+        rag_scores = [s for _, s in docs_with_scores]
     except Exception as e:
         state["errors"].append(f"competitor_node: 检索失败: {e}")
 
-    # ---- 2. 准备 RAG 上下文 ----
-    rag_context = ""
-    for i, doc in enumerate(rag_docs):
-        src = doc.metadata.get("source", "未知")
-        rag_context += f"[片段 {i+1}] (来源: {src})\n{doc.page_content}\n\n"
+    # ---- 2. 判断检索结果是否匹配品类 ----
+    max_score = max(rag_scores) if rag_scores else 0.0
+    is_relevant = max_score >= config.RAG_SCORE_THRESHOLD if rag_docs else False
 
-    if not rag_context.strip():
-        rag_context = "（知识库中暂无该品类的竞品数据，请基于行业通用知识分析常见的竞品类型）"
+    if rag_docs and not is_relevant:
+        state["errors"].append(
+            f"competitor_node: 知识库数据与当前品类不匹配（最高相关性 {max_score:.2f}，阈值 {config.RAG_SCORE_THRESHOLD}），"
+            "已降级到 LLM 内置知识"
+        )
 
-    sources = _collect_sources(rag_docs)
+    # ---- 3. 准备 RAG 上下文 ----
+    if is_relevant:
+        rag_context = ""
+        for i, doc in enumerate(rag_docs):
+            src = doc.metadata.get("source", "未知")
+            rag_context += f"[片段 {i+1}] (来源: {src})\n{doc.page_content}\n\n"
+        sources = _collect_sources(rag_docs)
+    else:
+        rag_context = (
+            "（本地知识库中暂无该品类的竞品数据。请完全基于你自身的行业知识进行分析，\n"
+            "覆盖该品类的主要品牌、价格区间、定位、优势和劣势等维度。\n"
+            "对于每项结论，请标注可信度：高/中/低。不要编造不存在的品牌或数据。）"
+        )
+        sources = []
 
     # ---- 3. 调用 LLM ----
     product_analysis_str = json.dumps(product_analysis, ensure_ascii=False, indent=2)

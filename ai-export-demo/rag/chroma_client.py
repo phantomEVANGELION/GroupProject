@@ -143,6 +143,25 @@ def similarity_search(
         return []
 
 
+def similarity_search_with_relevance_scores(
+    collection_name: str,
+    query: str,
+    k: int = 4,
+) -> list[tuple[Document, float]]:
+    """在指定 collection 中进行相似度检索，返回带相关性分数的结果。
+
+    返回 (Document, relevance_score) 列表，score 越高表示越相关（范围约 [0, 1]）。
+    可用于判断检索结果是否与查询相关，过滤无关数据。
+    """
+    try:
+        vs = get_vectorstore(collection_name)
+        docs_with_scores = vs.similarity_search_with_relevance_scores(query, k=k)
+        return docs_with_scores
+    except Exception as e:
+        print(f"⚠️ 带分数检索失败 [{collection_name}]: {e}")
+        return []
+
+
 def get_collection_count(collection_name: str) -> int:
     """获取指定 collection 的文档数量"""
     try:

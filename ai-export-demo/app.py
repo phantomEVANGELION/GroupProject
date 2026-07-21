@@ -7,12 +7,13 @@ import os
 import sys
 import time
 import traceback
+import asyncio
 
 # 确保在项目根目录
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 import uvicorn
 
 from workflow.state import create_initial_state
@@ -26,7 +27,30 @@ from app_format import (
     format_strategy, format_content_section,
 )
 
+from rag.chroma_client import get_collection_count
+import config
+
 app = FastAPI(title="AI 跨境出海运营助手")
+
+
+# ================================================================
+# 启动事件 —— 按需初始化知识库
+# ================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    print("\n📚 检查知识库状态...")
+    try:
+        if get_collection_count(config.COLLECTION_MARKET) == 0:
+            init_market_kb()
+        else:
+            print("  ✅ 市场知识库已存在，跳过初始化")
+        if get_collection_count(config.COLLECTION_COMPETITOR) == 0:
+            init_competitor_kb()
+        else:
+            print("  ✅ 竞品知识库已存在，跳过初始化")
+    except Exception as e:
+        print(f"  ⚠️ 知识库检查失败（首次运行会自动初始化）: {e}")
 
 
 # ================================================================
@@ -77,7 +101,7 @@ textarea { resize: vertical; font-family: inherit; }
                  border-radius: 3px; transition: width .5s; }
 .progress-text { font-size: 14px; color: #475569; margin-top: 8px; text-align: center; }
 .progress-steps { display: flex; justify-content: center; gap: 6px; font-size: 13px;
-                  margin-bottom: 10px; color: #94a3b8; }
+                  margin-bottom: 10px; color: #94a3b8; flex-wrap: wrap; }
 .progress-steps .done { color: #10b981; }
 .progress-steps .current { color: #3b82f6; font-weight: 600; }
 
@@ -92,30 +116,77 @@ textarea { resize: vertical; font-family: inherit; }
 .tab-btn.active { color: #3b82f6; border-bottom-color: #3b82f6; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
-.sub-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.sub-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
 .sub-tab-btn { padding: 6px 14px; border: 1px solid #e2e8f0; border-radius: 6px;
                background: white; font-size: 13px; cursor: pointer; color: #64748b; }
 .sub-tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
 .sub-tab-content { display: none; }
 .sub-tab-content.active { display: block; }
 
+/* ---- 结果卡片 ---- */
 .result-card { background: white; border-radius: 12px; padding: 20px;
                border: 1px solid #e2e8f0; margin: 8px 0; }
-.result-card h3 { font-size: 16px; margin-bottom: 12px; color: #0f172a; }
+.result-card h3 { font-size: 16px; margin-bottom: 12px; color: #0f172a;
+                  border-left: 3px solid #3b82f6; padding-left: 10px; }
 .result-card h4 { font-size: 14px; margin: 12px 0 6px; color: #334155; }
+.result-card ul { padding-left: 20px; margin: 8px 0; }
+.result-card li { margin: 4px 0; line-height: 1.5; }
+.result-card p { margin: 6px 0; }
+.result-card .detail { color: #64748b; font-size: 13px; }
+
+/* ---- 表格 ---- */
+.table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { padding: 8px 10px; border: 1px solid #e2e8f0; text-align: left; }
-th { background: #f8fafc; font-weight: 600; color: #475569; }
+th, td { padding: 10px 12px; border: 1px solid #e2e8f0; text-align: left; }
+th { background: #f8fafc; font-weight: 600; color: #475569; white-space: nowrap; }
+td { vertical-align: top; }
+
+/* ---- 置信度标签 ---- */
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px;
+         border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+.badge-high { background: #dcfce7; color: #166534; }
+.badge-medium { background: #fef9c3; color: #854d0e; }
+.badge-low { background: #fee2e2; color: #991b1b; }
+
+/* ---- 市场条目 ---- */
+.market-item { background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin: 8px 0; }
+.market-item h4 { margin-top: 0; }
+.data-source { font-size: 12px; color: #94a3b8; font-style: italic; margin-top: 4px; }
+
+/* ---- 内容块 ---- */
+.content-block { background: white; border-radius: 12px; padding: 20px;
+                 border: 1px solid #e2e8f0; margin: 8px 0; }
+.content-block h3 { font-size: 15px; margin-bottom: 10px; color: #0f172a;
+                    border-left: 3px solid #10b981; padding-left: 10px; }
+.script-block { background: #f8fafc; border-radius: 8px; padding: 16px;
+                font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+.email-body { background: #f8fafc; border-radius: 8px; padding: 16px;
+              font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+.email-subject { background: #f1f5f9; border-radius: 6px; padding: 8px 12px;
+                 font-family: monospace; font-size: 14px; }
+.amazon-title { font-size: 16px; font-weight: 600; color: #0f172a; }
+.hashtags { color: #3b82f6; font-size: 13px; }
+
+/* ---- 通用 ---- */
 .sources { font-size: 12px; color: #94a3b8; margin-top: 12px; padding-top: 8px;
            border-top: 1px solid #e2e8f0; }
+blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius: 4px;
+             padding: 12px 16px; margin: 8px 0; color: #475569; font-size: 14px; }
+.empty-state { color: #94a3b8; padding: 20px; text-align: center; }
 .error-box { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px;
              padding: 12px; margin: 8px 0; font-size: 13px; color: #b91c1c; }
 .footer { text-align: center; padding: 20px 0; font-size: 12px; color: #94a3b8; }
-.copy-btn { float: right; padding: 4px 10px; font-size: 12px; border: 1px solid #e2e8f0;
-            border-radius: 4px; background: white; cursor: pointer; color: #64748b; }
-.copy-btn:hover { background: #f1f5f9; }
-.markdown-body ul, .markdown-body ol { padding-left: 20px; margin: 8px 0; }
-.markdown-body li { margin: 4px 0; }
+
+/* ---- Toast 通知 ---- */
+#notificationContainer { position: fixed; top: 20px; right: 20px; z-index: 9999;
+                         display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { background: #10b981; color: white; padding: 12px 24px; border-radius: 10px;
+         font-weight: 600; font-size: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+         transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+         max-width: 320px; pointer-events: auto; }
+.toast.show { transform: translateX(0); }
+.toast-error { background: #ef4444; }
+
 @media (max-width: 700px) { .input-row { flex-direction: column; } }
 </style>
 </head>
@@ -177,12 +248,34 @@ th { background: #f8fafc; font-weight: 600; color: #475569; }
 </div>
 </div>
 
+<div id="notificationContainer"></div>
+
 <script>
 const TAB_NAMES = ["📋 产品分析","🌍 市场分析","⚔️ 竞品分析","🎯 营销策略","✍️ 内容生成"];
-const SUB_TABS = {
-    4: ["🛒 Amazon","🎬 TikTok","📧 开发信","📺 直播话术"]
+const NOTIFY_MSG = {
+    1: "✅ 产品分析生成完毕！",
+    2: "🌍 市场分析生成完毕！",
+    3: "⚔️ 竞品分析生成完毕！",
+    4: "🎯 营销策略生成完毕！",
+    5: "✍️ 内容生成生成完毕！"
 };
+const STEP_NAMES = ["产品分析", "市场分析", "竞品分析", "营销策略", "内容生成"];
 
+// ========== Toast 通知 ==========
+function showNotification(msg, isError) {
+    const container = document.getElementById("notificationContainer");
+    const toast = document.createElement("div");
+    toast.className = "toast" + (isError ? " toast-error" : "");
+    toast.textContent = msg;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("show"));
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+// ========== 示例加载 ==========
 function loadSample() {
     document.getElementById("productName").value = "X100 智能运动手表";
     document.getElementById("productDesc").value =
@@ -192,140 +285,208 @@ function loadSample() {
         "磁吸充电 · 仅重52g · 支持支付宝/微信离线支付";
 }
 
+// ========== 进度条 ==========
 function setProgress(step) {
-    const steps = [0.1, 0.3, 0.5, 0.7, 0.9, 1.0];
-    const labels = ["","📋 正在分析产品资料...","🌍 正在分析市场数据...",
-                    "⚔️ 正在分析竞品信息...","🎯 正在制定营销策略...",
-                    "✍️ 正在生成营销内容...","✅ 分析完成！"];
-    const pct = step >= 6 ? 100 : Math.round((step-1)/5*100);
+    const pct = Math.min(Math.round((step - 1) / 5 * 100), 100);
     document.getElementById("progressFill").style.width = pct + "%";
-    document.getElementById("progressText").textContent = labels[step] || "";
+
+    const labels = ["等待开始...", "📋 正在分析产品资料...", "🌍 正在分析市场数据...",
+                    "⚔️ 正在分析竞品信息...", "🎯 正在制定营销策略...",
+                    "✍️ 正在生成营销内容...", "✅ 分析完成！"];
+    document.getElementById("progressText").textContent = labels[Math.min(step, 6)] || "";
+
     for (let i = 1; i <= 5; i++) {
-        const el = document.getElementById("s"+i);
-        if (i < step) { el.className = "done"; el.innerHTML = "✅ " + TAB_NAMES[i-1].replace(/^.. /,""); }
-        else if (i === step) { el.className = "current"; el.innerHTML = "🔄 " + TAB_NAMES[i-1].replace(/^.. /,""); }
-        else { el.className = ""; el.innerHTML = "⬜ " + TAB_NAMES[i-1].replace(/^.. /,""); }
+        const el = document.getElementById("s" + i);
+        if (i < step) {
+            el.className = "done";
+            el.innerHTML = "✅ " + STEP_NAMES[i - 1];
+        } else if (i === step) {
+            el.className = "current";
+            el.innerHTML = "🔄 " + STEP_NAMES[i - 1];
+        } else {
+            el.className = "";
+            el.innerHTML = "⬜ " + STEP_NAMES[i - 1];
+        }
     }
 }
 
 function showError(msg) {
     document.getElementById("errorBox").style.display = "block";
     document.getElementById("errorBox").textContent = "⚠️ " + msg;
+    showNotification("⚠️ " + msg, true);
 }
 
+// ========== 构建空 Tab 骨架 ==========
+function buildTabStructure() {
+    const tabHeaders = document.getElementById("tabHeaders");
+    const tabContents = document.getElementById("tabContents");
+    tabHeaders.innerHTML = "";
+    tabContents.innerHTML = "";
+
+    TAB_NAMES.forEach(function(name, i) {
+        const btn = document.createElement("button");
+        btn.className = "tab-btn" + (i === 0 ? " active" : "");
+        btn.textContent = name;
+        btn.onclick = function() { switchTab(i); };
+        tabHeaders.appendChild(btn);
+
+        const div = document.createElement("div");
+        div.className = "tab-content" + (i === 0 ? " active" : "");
+        div.innerHTML = '<p class="empty-state">⏳ 等待分析结果...</p>';
+        tabContents.appendChild(div);
+    });
+}
+
+// ========== 渲染单个 Tab ==========
+function renderTabContent(index, html) {
+    const container = document.getElementById("tabContents");
+    const contentDiv = container.children[index];
+    if (!contentDiv) return;
+
+    if (index === 4 && typeof html === "object") {
+        contentDiv.innerHTML = "";
+        const subNames = ["Amazon Listing", "TikTok 脚本", "开发信", "直播话术"];
+        const subKeys = ["amazon", "tiktok", "email", "live"];
+
+        const subNav = document.createElement("div");
+        subNav.className = "sub-tabs";
+
+        const subContainer = document.createElement("div");
+
+        subNames.forEach(function(sname, si) {
+            const sbtn = document.createElement("button");
+            sbtn.className = "sub-tab-btn" + (si === 0 ? " active" : "");
+            sbtn.textContent = sname;
+            sbtn.onclick = function() { switchSubTab(si); };
+            subNav.appendChild(sbtn);
+
+            const sdiv = document.createElement("div");
+            sdiv.className = "sub-tab-content" + (si === 0 ? " active" : "");
+            sdiv.innerHTML = html[subKeys[si]] || '<p class="empty-state">（无内容）</p>';
+            subContainer.appendChild(sdiv);
+        });
+
+        contentDiv.appendChild(subNav);
+        contentDiv.appendChild(subContainer);
+    } else if (typeof html === "string" && html.trim().length > 0) {
+        contentDiv.innerHTML = html;
+    } else {
+        contentDiv.innerHTML = '<p class="empty-state">（分析结果为空）</p>';
+    }
+}
+
+// ========== 流式事件处理 ==========
+function handleStreamEvent(event) {
+    var step = event.step;
+    if (step === 6) {
+        document.getElementById("analyzeBtn").disabled = false;
+        setProgress(6);
+        if (event.errors && event.errors.length > 0) {
+            var errDiv = document.createElement("div");
+            errDiv.className = "error-box";
+            errDiv.textContent = "⚠️ 执行警告（不影响已生成的结果）: " + event.errors.join("; ");
+            document.getElementById("tabContents").appendChild(errDiv);
+        }
+        return;
+    }
+
+    // 更新进度（当前步骤已完成，指向下一步）
+    setProgress(step + 1);
+
+    // 通知
+    var msg = NOTIFY_MSG[step];
+    if (msg) showNotification(msg);
+
+    // 渲染对应 tab
+    renderTabContent(step - 1, event.html);
+}
+
+// ========== 开始分析（流式） ==========
 async function startAnalysis() {
-    const name = document.getElementById("productName").value.trim();
-    const desc = document.getElementById("productDesc").value.trim();
+    var name = document.getElementById("productName").value.trim();
+    var desc = document.getElementById("productDesc").value.trim();
     if (!name && !desc) { showError("请填写产品名称或描述"); return; }
 
     document.getElementById("errorBox").style.display = "none";
     document.getElementById("analyzeBtn").disabled = true;
     document.getElementById("progressSection").className = "progress active";
     document.getElementById("tabsSection").className = "tabs";
-    document.getElementById("tabContents").innerHTML = "";
 
+    document.getElementById("tabContents").innerHTML = "";
+    document.getElementById("tabHeaders").innerHTML = "";
+
+    buildTabStructure();
     setProgress(1);
 
     try {
-        const resp = await fetch("/analyze", {
+        var resp = await fetch("/analyze-stream", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({product_name: name, product_description: desc})
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ product_name: name, product_description: desc })
         });
+
         if (!resp.ok) {
-            const err = await resp.text();
-            showError("分析失败: " + err.slice(0,200));
+            var errText = await resp.text();
+            showError("分析失败: " + errText.slice(0, 200));
             document.getElementById("analyzeBtn").disabled = false;
             return;
         }
-        const result = await resp.json();
-        renderResults(result);
+
+        var reader = resp.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = "";
+
+        while (true) {
+            var result = await reader.read();
+            if (result.done) break;
+
+            buffer += decoder.decode(result.value, { stream: true });
+            var parts = buffer.split("\n");
+            buffer = parts.pop();
+
+            for (var j = 0; j < parts.length; j++) {
+                var line = parts[j].trim();
+                if (line.startsWith("data: ")) {
+                    try {
+                        var eventData = JSON.parse(line.slice(6));
+                        handleStreamEvent(eventData);
+                    } catch (e) {
+                        console.warn("Event parse:", e);
+                    }
+                }
+            }
+        }
     } catch (e) {
         showError("网络错误: " + e.message);
         document.getElementById("analyzeBtn").disabled = false;
     }
 }
 
-function renderResults(result) {
-    setProgress(6);
-    document.getElementById("analyzeBtn").disabled = false;
-    document.getElementById("tabsSection").className = "tabs active";
-
-    const tabs = result.tabs || [];
-    const errors = result.errors || [];
-    const tabHeaders = document.getElementById("tabHeaders");
-    const tabContents = document.getElementById("tabContents");
-    tabHeaders.innerHTML = "";
-    tabContents.innerHTML = "";
-
-    TAB_NAMES.forEach((name, i) => {
-        const btn = document.createElement("button");
-        btn.className = "tab-btn" + (i === 0 ? " active" : "");
-        btn.textContent = name;
-        btn.onclick = () => switchTab(i);
-        tabHeaders.appendChild(btn);
-
-        const content = document.createElement("div");
-        content.className = "tab-content" + (i === 0 ? " active" : "");
-        content.dataset.index = i;
-
-        if (i === 4 && tabs[i]) {
-            // Content tab: show sub-tabs
-            const subTabNames = ["Amazon Listing", "TikTok 脚本", "开发信", "直播话术"];
-            const subKeys = ["amazon", "tiktok", "email", "live"];
-            const subNav = document.createElement("div");
-            subNav.className = "sub-tabs";
-            subNav.id = "subTabNav";
-            content.appendChild(subNav);
-
-            const subContainer = document.createElement("div");
-            subContainer.id = "subTabContainer";
-
-            subTabNames.forEach((sname, si) => {
-                const sbtn = document.createElement("button");
-                sbtn.className = "sub-tab-btn" + (si === 0 ? " active" : "");
-                sbtn.textContent = sname;
-                sbtn.onclick = () => switchSubTab(si);
-                subNav.appendChild(sbtn);
-
-                const sdiv = document.createElement("div");
-                sdiv.className = "sub-tab-content" + (si === 0 ? " active" : "");
-                sdiv.innerHTML = tabs[i][subKeys[si]] || "<p>（无内容）</p>";
-                subContainer.appendChild(sdiv);
-            });
-            content.appendChild(subContainer);
-        } else if (tabs[i]) {
-            const card = document.createElement("div");
-            card.className = "result-card markdown-body";
-            card.innerHTML = tabs[i];
-            content.appendChild(card);
-        } else {
-            content.innerHTML = "<p style='color:#94a3b8;padding:20px;'>（分析结果为空）</p>";
-        }
-
-        tabContents.appendChild(content);
-    });
-
-    if (errors.length > 0) {
-        const errDiv = document.createElement("div");
-        errDiv.className = "error-box";
-        errDiv.textContent = "⚠️ 执行警告（不影响已生成的结果）: " + errors.join("; ");
-        tabContents.appendChild(errDiv);
+// ========== Tab 切换 ==========
+function switchTab(index) {
+    var btns = document.querySelectorAll(".tab-btn");
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].className = "tab-btn" + (i === index ? " active" : "");
+    }
+    var contents = document.querySelectorAll(".tab-content");
+    for (var i = 0; i < contents.length; i++) {
+        contents[i].className = "tab-content" + (i === index ? " active" : "");
     }
 }
 
-function switchTab(index) {
-    document.querySelectorAll(".tab-btn").forEach((b,i) => b.className = "tab-btn" + (i===index?" active":""));
-    document.querySelectorAll(".tab-content").forEach((c,i) => c.className = "tab-content" + (i===index?" active":""));
-}
-
 function switchSubTab(index) {
-    const nav = document.getElementById("subTabNav");
+    var nav = document.querySelector(".sub-tabs");
     if (!nav) return;
-    nav.querySelectorAll(".sub-tab-btn").forEach((b,i) => b.className = "sub-tab-btn" + (i===index?" active":""));
-    const container = document.getElementById("subTabContainer");
+    var btns = nav.querySelectorAll(".sub-tab-btn");
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].className = "sub-tab-btn" + (i === index ? " active" : "");
+    }
+    var container = nav.nextElementSibling;
     if (!container) return;
-    container.querySelectorAll(".sub-tab-content").forEach((c,i) => c.className = "sub-tab-content" + (i===index?" active":""));
+    var contents = container.querySelectorAll(".sub-tab-content");
+    for (var i = 0; i < contents.length; i++) {
+        contents[i].className = "sub-tab-content" + (i === index ? " active" : "");
+    }
 }
 </script>
 </body>
@@ -343,7 +504,7 @@ async def index():
 
 @app.post("/analyze")
 async def analyze(request: Request):
-    """运行完整分析工作流，返回格式化的 Markdown 结果"""
+    """（向后兼容）运行完整分析工作流，一次性返回格式化的结果"""
     data = await request.json()
     product_name = data.get("product_name", "")
     product_description = data.get("product_description", "")
@@ -353,7 +514,6 @@ async def analyze(request: Request):
         product_description=product_description or "",
     )
 
-    # 顺序执行 5 个节点
     for name, func in [
         ("product", product_node),
         ("market", market_node),
@@ -368,7 +528,6 @@ async def analyze(request: Request):
 
     errors = state.get("errors", [])
 
-    # 格式化结果
     tabs = [
         format_product(state),
         format_market(state),
@@ -383,6 +542,54 @@ async def analyze(request: Request):
     ]
 
     return {"tabs": tabs, "errors": errors}
+
+
+@app.post("/analyze-stream")
+async def analyze_stream(request: Request):
+    """SSE 流式分析 —— 每完成一个节点就推送结果到前端"""
+    data = await request.json()
+    product_name = data.get("product_name", "")
+    product_description = data.get("product_description", "")
+
+    state = create_initial_state(
+        product_name=product_name or "未知产品",
+        product_description=product_description or "",
+    )
+
+    async def event_generator():
+        loop = asyncio.get_event_loop()
+        steps = [
+            ("product", product_node, format_product),
+            ("market", market_node, format_market),
+            ("competitor", competitor_node, format_competitor),
+            ("strategy", strategy_node, format_strategy),
+            ("content", content_node, None),
+        ]
+
+        for i, (name, node_func, format_func) in enumerate(steps, 1):
+            try:
+                state = await loop.run_in_executor(None, node_func, state)
+            except Exception as e:
+                state["errors"].append(f"{name}_node 异常: {traceback.format_exc()}")
+
+            if i == 5:  # 内容节点 —— 特殊处理，返回带子标签的对象
+                html = {
+                    "amazon": format_content_section(state, "amazon"),
+                    "tiktok": format_content_section(state, "tiktok"),
+                    "email": format_content_section(state, "email"),
+                    "live": format_content_section(state, "live"),
+                }
+            else:
+                html = format_func(state) if format_func else ""
+
+            event = {"step": i, "html": html, "errors": state.get("errors", [])}
+            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+        # 最终完成事件
+        final = {"step": 6, "status": "complete", "errors": state.get("errors", [])}
+        yield f"data: {json.dumps(final, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 # ================================================================
