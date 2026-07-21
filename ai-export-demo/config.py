@@ -24,7 +24,7 @@ EMBEDDING_DEVICE = "cpu"
 
 # ========== RAG 检索参数 ==========
 RAG_TOP_K = 3
-RAG_SCORE_THRESHOLD = 0.6
+RAG_SCORE_THRESHOLD = 0.45
 
 # ========== 路径配置 ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

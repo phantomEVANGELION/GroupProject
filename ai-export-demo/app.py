@@ -14,6 +14,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from contextlib import asynccontextmanager
 import uvicorn
 
 from workflow.state import create_initial_state
@@ -30,15 +31,9 @@ from app_format import (
 from rag.chroma_client import get_collection_count
 import config
 
-app = FastAPI(title="AI 跨境出海运营助手")
-
-
-# ================================================================
-# 启动事件 —— 按需初始化知识库
-# ================================================================
-
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 启动时：按需初始化知识库
     print("\n📚 检查知识库状态...")
     try:
         if get_collection_count(config.COLLECTION_MARKET) == 0:
@@ -51,6 +46,11 @@ async def startup_event():
             print("  ✅ 竞品知识库已存在，跳过初始化")
     except Exception as e:
         print(f"  ⚠️ 知识库检查失败（首次运行会自动初始化）: {e}")
+    yield
+    # 关闭时（如有必要）
+    print("👋 应用关闭")
+
+app = FastAPI(title="AI 跨境出海运营助手", lifespan=lifespan)
 
 
 # ================================================================
@@ -557,6 +557,7 @@ async def analyze_stream(request: Request):
     )
 
     async def event_generator():
+        nonlocal state
         loop = asyncio.get_event_loop()
         steps = [
             ("product", product_node, format_product),
