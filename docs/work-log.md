@@ -7,7 +7,7 @@ metadata:
 
 # 开发工作日志
 
-## 存档点：b7f10d9（当前最新）
+## 存档点：26315d9（当前最新）
 
 ### 项目概况
 AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepSeek LLM
@@ -95,6 +95,27 @@ AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepS
 
 ---
 
+### 遇到的坑与解决方案
+
+#### 🕳️ 坑 1：模板花括号转义导致竞品分析乱码
+- **现象**: 竞品分析输出"收纳盒"等无意义内容
+- **原因**: `prompts.py` 中 JSON 输出示例使用了单花括号 `{}`，Python `str.format()` 将其解析为占位符，引发 `KeyError → format_prompt` 降级返回未填充的原始模板 → LLM 收到混乱指令
+- **解决**: 将单花括号改为双花括号 `{{}}` 转义
+- **教训**: 凡是用 `.format()` 渲染的模板中，字面花括号必须用 `{{` `}}`
+
+#### 🕳️ 坑 2：Ctrl+F5 刷新后首页按钮无响应
+- **现象**: 硬刷新后点击"开始使用"按钮无反应，需手动点击导航栏后才正常
+- **原因**: 浏览器恢复上一次 session 的 hash（如 `#analyze`），`location.hash` 不为空 → `if (!location.hash) location.hash = "home"` 不执行 → `navigate()` 从未被调用 → 所有 `page` 均为 `display:none`
+- **解决**: 脚本末尾始终调用一次 `navigate()`，无论 hash 是否已设置
+- **教训**: 路由初始化不能依赖 `hashchange` 事件，需主动调用导航函数
+
+#### 🕳️ 坑 3：LLM 输出免责声明代替分析
+- **现象**: 降级到 LLM 知识时输出"建议通过市场调研补充竞品信息"等空话
+- **原因**: Prompt 约束中含"如果数据不足请如实说明"，LLM 照做
+- **解决**: 改为"即使没有数据也必须完成分析并输出标准 JSON"，在 sources 区标注而非正文声明
+
+---
+
 ### 技术要点
 - **RAG 相关性阈值**: 0.45（`config.py` 中 `RAG_SCORE_THRESHOLD` 参数）
 - **Embedding 模型**: BAAI/bge-small-zh-v1.5（本地 CPU），自动降级 OpenAI Compatible
@@ -105,4 +126,4 @@ AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepS
 ```bash
 git reset --hard <commit-hash>
 ```
-主要存档点：`b7f10d9`（最新）、`7dcd840`（知识库扩展）、`9442d7c`（三项重大改动）、`bd79dc1`（初始项目）
+主要存档点：`26315d9`（最新导航修复）、`68acf6c`（综合报告）、`f9a9675`（SPA重构）、`7dcd840`（知识库扩展）、`9442d7c`（三项重大改动）、`bd79dc1`（初始项目）
