@@ -61,6 +61,17 @@ AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepS
 
 ---
 
+### 改动七：SPA 多页面前端重构
+- 新增导航栏：首页 / 全面产品分析 / 海外平台介绍 / 实时汇率
+- Hash 路由 SPA 架构，4 个页面通过 `#home` / `#analyze` / `#platforms` / `#rates` 切换
+- **首页**: Hero 大标题 + 项目介绍 + 核心功能卡片 + 三步上手引导 + "开始使用"按钮
+- **分析页**: 原有页面完整保留，未做改动
+- **海外平台介绍**: Amazon / eBay / TikTok / YouTube / X / Walmart 六个平台卡片，含品牌色图标、描述、运营建议
+- **实时汇率**: `/api/rates` 端点，30 分钟缓存，展示 13 种货币兑 USD + CNY 换算
+- **涉及文件**: `app.py`
+
+---
+
 ### 技术要点
 - **RAG 相关性阈值**: 0.45（`config.py` 中 `RAG_SCORE_THRESHOLD` 参数）
 - **Embedding 模型**: BAAI/bge-small-zh-v1.5（本地 CPU），自动降级 OpenAI Compatible
