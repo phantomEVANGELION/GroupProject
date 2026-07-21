@@ -51,6 +51,16 @@ AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepS
 
 ---
 
+### 改动六：文件上传支持
+- 新增 `/upload` POST 端点，支持 PDF/DOCX/TXT/MD/JSON 文件上传
+- 前端输入区增加文件选择 UI（虚线拖拽区 + 文件标签列表 + 移除功能）
+- `analyze-stream` 和 `analyze` 端点现在接收 `uploaded_files` 参数
+- 修复 `product_node` 中 `reset_collection` 在循环内导致多文件上传失效的 bug
+- 图片格式暂不支持（需 OCR），上传时会返回明确错误提示
+- **涉及文件**: `app.py`, `workflow/nodes.py`
+
+---
+
 ### 技术要点
 - **RAG 相关性阈值**: 0.45（`config.py` 中 `RAG_SCORE_THRESHOLD` 参数）
 - **Embedding 模型**: BAAI/bge-small-zh-v1.5（本地 CPU），自动降级 OpenAI Compatible

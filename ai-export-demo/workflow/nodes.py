@@ -134,13 +134,19 @@ def product_node(state: WorkflowState) -> WorkflowState:
 
     # ---- 1. 处理上传文件 ----
     all_chunks: list[Document] = []
+
+    # 清空 product_kb，防止旧数据干扰（只在有文件时执行一次）
+    if uploaded_files:
+        try:
+            reset_collection(config.COLLECTION_PRODUCT)
+        except Exception as e:
+            state["errors"].append(f"product_node: 重置知识库失败: {e}")
+
     for file_path in uploaded_files:
         if not os.path.exists(file_path):
             state["errors"].append(f"product_node: 文件不存在 {file_path}")
             continue
         try:
-            # 每次分析前先清空 product_kb，防止旧数据干扰
-            reset_collection(config.COLLECTION_PRODUCT)
             chunks = load_document(file_path)
             split_chunks = split_documents(chunks)
             all_chunks.extend(split_chunks)

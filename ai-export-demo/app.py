@@ -12,9 +12,10 @@ import asyncio
 # 确保在项目根目录
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, StreamingResponse
 from contextlib import asynccontextmanager
+import shutil
 import uvicorn
 
 from workflow.state import create_initial_state
@@ -51,6 +52,10 @@ async def lifespan(app: FastAPI):
     print("👋 应用关闭")
 
 app = FastAPI(title="AI 跨境出海运营助手", lifespan=lifespan)
+
+# ========== 文件上传配置 ==========
+UPLOAD_DIR = os.path.join(config.BASE_DIR, "data", "uploads")
+ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".md", ".json", ".yaml", ".yml"}
 
 
 # ================================================================
@@ -188,6 +193,22 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 .toast.show { transform: translateX(0); }
 .toast-error { background: #ef4444; }
 
+/* ---- 文件上传 ---- */
+.file-upload-row { margin-top: 12px; }
+.file-upload-area { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 10px;
+                   padding: 14px 18px; margin-top: 4px; transition: border-color .2s; }
+.file-upload-area:hover { border-color: #3b82f6; }
+.btn-file { padding: 8px 18px; border: 1px solid #cbd5e1; border-radius: 6px;
+            background: white; font-size: 13px; cursor: pointer; color: #475569; }
+.btn-file:hover { background: #f1f5f9; border-color: #3b82f6; color: #3b82f6; }
+.file-hint { font-size: 12px; color: #94a3b8; margin-left: 10px; }
+.file-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.file-tag { display: inline-flex; align-items: center; gap: 6px;
+            background: #e2e8f0; border-radius: 6px; padding: 4px 10px;
+            font-size: 12px; color: #334155; }
+.file-tag .remove { cursor: pointer; color: #94a3b8; font-weight: bold; }
+.file-tag .remove:hover { color: #ef4444; }
+
 @media (max-width: 700px) { .input-row { flex-direction: column; } }
 </style>
 </head>
@@ -217,6 +238,15 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 <textarea id="productDesc" rows="4" placeholder="请描述产品核心功能、规格...">IP68防水 · 7天超长续航 · 24小时健康监测（心率/血氧/睡眠）
 铝合金表壳 · 1.43英寸AMOLED屏幕 · 蓝牙5.3 · GPS运动轨迹追踪
 100+运动模式 · 兼容iOS/Android · 磁吸充电 · 仅重52g</textarea>
+</div>
+</div>
+<div class="file-upload-row">
+<label>上传产品资料（可选）</label>
+<div class="file-upload-area">
+<input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.md,.json" hidden>
+<button class="btn btn-file" onclick="document.getElementById('fileInput').click()">📎 选择文件</button>
+<span class="file-hint">支持 PDF / DOCX / TXT / MD / JSON</span>
+<div id="fileList" class="file-list"></div>
 </div>
 </div>
 <div class="actions">
@@ -402,6 +432,32 @@ function handleStreamEvent(event) {
     renderTabContent(step - 1, event.html);
 }
 
+// ========== 文件上传管理 ==========
+var uploadedFilePaths = [];
+
+document.getElementById("fileInput").addEventListener("change", function() {
+    var list = document.getElementById("fileList");
+    list.innerHTML = "";
+    for (var i = 0; i < this.files.length; i++) {
+        var file = this.files[i];
+        var tag = document.createElement("span");
+        tag.className = "file-tag";
+        tag.innerHTML = "📎 " + file.name + " <span class=\"remove\" onclick=\"removeFile(" + i + ")\">✕</span>";
+        list.appendChild(tag);
+    }
+});
+
+function removeFile(index) {
+    var input = document.getElementById("fileInput");
+    var dt = new DataTransfer();
+    var files = input.files;
+    for (var i = 0; i < files.length; i++) {
+        if (i !== index) dt.items.add(files[i]);
+    }
+    input.files = dt.files;
+    input.dispatchEvent(new Event("change"));
+}
+
 // ========== 开始分析（流式） ==========
 async function startAnalysis() {
     var name = document.getElementById("productName").value.trim();
@@ -419,11 +475,37 @@ async function startAnalysis() {
     buildTabStructure();
     setProgress(1);
 
+    // 上传文件（如有）
+    uploadedFilePaths = [];
+    var fileInput = document.getElementById("fileInput");
+    if (fileInput.files.length > 0) {
+        var formData = new FormData();
+        for (var i = 0; i < fileInput.files.length; i++) {
+            formData.append("files", fileInput.files[i]);
+        }
+        try {
+            var uploadResp = await fetch("/upload", { method: "POST", body: formData });
+            var uploadResult = await uploadResp.json();
+            uploadedFilePaths = uploadResult.uploaded_files || [];
+            if (uploadResult.errors && uploadResult.errors.length > 0) {
+                showNotification("⚠️ " + uploadResult.errors[0], true);
+            }
+        } catch (e) {
+            showNotification("⚠️ 文件上传失败: " + e.message, true);
+        }
+    }
+
+    var requestBody = {
+        product_name: name,
+        product_description: desc,
+        uploaded_files: uploadedFilePaths
+    };
+
     try {
         var resp = await fetch("/analyze-stream", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ product_name: name, product_description: desc })
+            body: JSON.stringify(requestBody)
         });
 
         if (!resp.ok) {
@@ -503,16 +585,40 @@ async def index():
     return HTML_PAGE
 
 
+@app.post("/upload")
+async def upload_files(files: list[UploadFile] = File(...)):
+    """上传产品资料文件，保存到临时目录，返回文件路径列表"""
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    saved = []
+    errors = []
+    for file in files:
+        ext = os.path.splitext(file.filename or "")[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            errors.append(f"{file.filename}: 不支持的文件格式（支持 PDF/DOCX/TXT/MD/JSON）")
+            continue
+        safe_name = f"{int(time.time() * 1000)}_{file.filename}"
+        save_path = os.path.join(UPLOAD_DIR, safe_name)
+        try:
+            with open(save_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            saved.append(save_path)
+        except Exception as e:
+            errors.append(f"{file.filename}: 保存失败 - {e}")
+    return {"uploaded_files": saved, "errors": errors}
+
+
 @app.post("/analyze")
 async def analyze(request: Request):
     """（向后兼容）运行完整分析工作流，一次性返回格式化的结果"""
     data = await request.json()
     product_name = data.get("product_name", "")
     product_description = data.get("product_description", "")
+    uploaded_files = data.get("uploaded_files", [])
 
     state = create_initial_state(
         product_name=product_name or "未知产品",
         product_description=product_description or "",
+        uploaded_files=uploaded_files,
     )
 
     for name, func in [
@@ -551,10 +657,12 @@ async def analyze_stream(request: Request):
     data = await request.json()
     product_name = data.get("product_name", "")
     product_description = data.get("product_description", "")
+    uploaded_files = data.get("uploaded_files", [])
 
     state = create_initial_state(
         product_name=product_name or "未知产品",
         product_description=product_description or "",
+        uploaded_files=uploaded_files,
     )
 
     async def event_generator():
