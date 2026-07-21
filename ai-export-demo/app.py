@@ -200,7 +200,7 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 <div class="flow">
 <span>📄 产品资料</span><span>→</span><span>📚 RAG 知识检索</span>
 <span>→</span><span>🤖 AI 分析</span><span>→</span><span>🎯 营销策略</span>
-<span>→</span><span>✍️ 内容生成</span>
+<span>→</span><span>✍️ 文案编写</span>
 </div>
 <hr>
 
@@ -231,7 +231,7 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 <span id="s2">⬜ 市场分析</span><span>→</span>
 <span id="s3">⬜ 竞品分析</span><span>→</span>
 <span id="s4">⬜ 营销策略</span><span>→</span>
-<span id="s5">⬜ 内容生成</span>
+<span id="s5">⬜ 文案编写</span>
 </div>
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 <div class="progress-text" id="progressText">等待开始...</div>
@@ -252,15 +252,15 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 <div id="notificationContainer"></div>
 
 <script>
-const TAB_NAMES = ["📋 产品分析","🌍 市场分析","⚔️ 竞品分析","🎯 营销策略","✍️ 内容生成"];
+const TAB_NAMES = ["📋 产品分析","🌍 市场分析","⚔️ 竞品分析","🎯 营销策略","✍️ 文案编写"];
 const NOTIFY_MSG = {
     1: "✅ 产品分析生成完毕！",
     2: "🌍 市场分析生成完毕！",
     3: "⚔️ 竞品分析生成完毕！",
     4: "🎯 营销策略生成完毕！",
-    5: "✍️ 内容生成生成完毕！"
+    5: "✍️ 文案编写完毕！"
 };
-const STEP_NAMES = ["产品分析", "市场分析", "竞品分析", "营销策略", "内容生成"];
+const STEP_NAMES = ["产品分析", "市场分析", "竞品分析", "营销策略", "文案编写"];
 
 // ========== Toast 通知 ==========
 function showNotification(msg, isError) {
@@ -293,7 +293,7 @@ function setProgress(step) {
 
     const labels = ["等待开始...", "📋 正在分析产品资料...", "🌍 正在分析市场数据...",
                     "⚔️ 正在分析竞品信息...", "🎯 正在制定营销策略...",
-                    "✍️ 正在生成营销内容...", "✅ 分析完成！"];
+                    "✍️ 正在编写营销文案...", "✅ 分析完成！"];
     document.getElementById("progressText").textContent = labels[Math.min(step, 6)] || "";
 
     for (let i = 1; i <= 5; i++) {
