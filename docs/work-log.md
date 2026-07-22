@@ -15,6 +15,49 @@ AI 跨境出海运营助手 Demo — FastAPI + LangGraph + RAG(ChromaDB) + DeepS
 
 ---
 
+### 改动零：Gradio UI 替换为 FastAPI + 纯前端 SPA（架构级重构）
+
+> 这是项目最根本的架构决策，后续所有改动都基于此架构。
+
+#### 最初设计（已废弃）
+最初使用 **Gradio**（`gradio_api` 端点）作为前端框架，通过 Gradio 的 generator 机制实现逐步更新。当时的设计是：
+- `app.py` 中嵌入了 Gradio 的 Blocks/Interface
+- 前端通过 Gradio 内置的 API 路由（`/gradio_api/call/`、`/gradio_api/predict`）与后端交互
+- 工作流通过 `yield` 逐步骤输出结果到 Gradio 前端
+- 技术栈参考了 Gradio 5.50.0 的 generator 流式更新模式
+- `README.md` 中的架构图、技术栈说明均基于此设计（已过时）
+- `test_api2.py` 是当时用来测试 Gradio API 调用的脚本（残存遗留文件）
+
+#### 遇到的问题
+1. **Gradio 与 LangGraph 配合不佳** — Gradio 的 generator 机制在复杂工作流场景下不稳定，多步骤状态传递容易丢失
+2. **前端响应不可控** — Gradio 在长时间分析过程中出现白屏、无响应现象，用户体验差
+3. **UI 定制空间小** — Gradio 的组件化 UI 难以满足多 Tab 嵌套子 Tab、复杂数据表格等展示需求
+4. **API 耦合度高** — Gradio 内置 API 层不够灵活，调试困难
+
+#### 新架构（当前方案）
+完全抛弃 Gradio，改用 **FastAPI + 纯原生 HTML/CSS/JavaScript SPA**：
+
+| 维度 | 旧方案（Gradio） | 新方案（FastAPI + SPA） |
+|------|----------------|----------------------|
+| **Web 框架** | Gradio（内含 FastAPI） | 纯 FastAPI + Uvicorn |
+| **前端** | Gradio 组件渲染 | 原生 HTML/CSS/JS，零框架依赖 |
+| **流式** | Gradio generator（yield） | SSE（Server-Sent Events） |
+| **路由** | Gradio 内置 Tab 切换 | Hash 路由（`#home/#analyze/...`） |
+| **多页面** | 不支持 | 4 页面 SPA（首页/分析/平台/汇率） |
+| **定制性** | 受限的组件 API | 完全自由 |
+| **API 层** | `/gradio_api/*` 自动生成 | 自定义 RESTful API |
+| **部署** | 依赖 Gradio 运行时 | 标准 FastAPI 应用 |
+
+#### 涉及的文件
+- **重写**: `app.py` — 从 Gradio Blocks 改为 FastAPI + 完整前端 SPA
+- **新增**: `app_format.py` — 新增格式化模块（旧方案中格式逻辑内嵌在 Gradio 回调中）
+- **遗留（待清理）**: `test_api2.py` 为 Gradio 测试脚本（不影响运行，未删除供参考）
+
+#### 教训
+Gradio 适合快速原型验证，但一旦工作流逻辑复杂、前端展示要求高，应当尽早切换到标准 Web 框架。SSE 流式推送比 Gradio 的 generator 机制更稳定可控，且纯 HTML 前端提供了完全自由的展示能力。
+
+---
+
 ### 改动一：SSE 流式进度 + 逐步骤渲染 + 通知动画
 - 新增 `/analyze-stream` SSE 端点，后端每完成一个节点立即推送结果
 - 前端 `fetch` + `ReadableStream` 流式读取，逐步渲染 5 个 Tab

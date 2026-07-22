@@ -1,7 +1,7 @@
 # 👋 项目交接文档
 
 > 请 Claude 先阅读此文件，再开始工作。
-> 当前存档点：`d02e943` | 运行在 http://127.0.0.1:7860
+> 当前存档点：`ff220ba` | 运行在 http://127.0.0.1:7860
 
 ---
 
@@ -55,11 +55,10 @@ ai-export-demo/
 ├── sample_data/                    # 示例产品（X100 智能运动手表）
 ├── data/chroma_db/                 # ChromaDB 持久化（自动创建，已 gitignore）
 │
-├── docs/
-│   ├── work-log.md                 # 完整开发日志（含踩坑记录）
-│   └── MEMORY.md                   # 文档索引
+├── docs/                           
+│   └── HANDOVER.md                 # 本文件
 │
-└── HANDOVER.md                     # 本文件
+└── (详细文档见 D:\GroupProject\docs\)
 ```
 
 ---
@@ -157,5 +156,7 @@ ai-export-demo/
 ## 📞 相关文件
 
 - 完整开发日志：`docs/work-log.md`
+- 项目档案（答辩用）：`docs/profile.md`
 - 项目记忆索引：`docs/MEMORY.md`
 - 配置文件：`config.py`（阈值、路径、模型参数集中管理）
+- 应用 README：`ai-export-demo/README.md`
