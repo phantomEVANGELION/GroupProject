@@ -1,2 +1,5 @@
 - [工作日志](work-log.md) — 完整开发记录，含所有改动、技术要点和回退方式
 - [项目档案](profile.md) — 完整项目分析，含每个文件功能、架构总览、数据流、设计亮点（答辩用）
+- [新需求方案](new_requirement.md) — Agent 工作台改造完整方案，含 4 个 Agent 详细实现
+- [老师说明](teacher_explanation.md) — 向老师汇报改动的文字
+- [组员说明](team_instructions.md) — 向组员下发的开发任务说明
