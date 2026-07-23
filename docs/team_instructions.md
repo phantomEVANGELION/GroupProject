@@ -45,7 +45,7 @@ ai-export-demo/
 
 ## 具体分工
 
-### 前端组（1人）— 改 app.py 的 HTML_PAGE
+###  改 app.py 的 HTML_PAGE
 
 你要做的事情：
 
@@ -110,7 +110,7 @@ ai-export-demo/
   - True：执行真实发布（注释掉的骨架代码写在里面）
 - 需要 `_log_publish()` 函数记录发布日志到 `data/publish_log.jsonl`
 
-### 集成组（1人）— 改 app.py 后端 + 联调
+### 改 app.py 后端 + 联调
 
 你要做的事情：
 
@@ -137,7 +137,7 @@ ai-export-demo/
 ## 关键约定
 
 1. **不动 workflow/ 和 app_format.py** — 原有的分析功能还是好的，不需要动
-2. **store_kb collection**：Chat Agent 和 CS Agent 在初始化时从 store_kb 检索店铺信息。目前 store_kb 可能为空，不影响运行（LLM 会用自身知识兜底）。如果时间充裕，可以在 `sample_data/` 下放一份示例店铺文档 `my_store.md`，程序启动时自动加载到 store_kb
+2. **store_kb collection**：Chat Agent 和 CS Agent 在初始化时从 store_kb 检索店铺信息。目前 store_kb 可能为空，不影响运行（LLM 会用自身知识兜底）。可以在 `sample_data/` 下放一份示例店铺文档 `my_store.md`，程序启动时自动加载到 store_kb
 3. **API 错误处理**：每个 API 要 try/except，出错时返回 `{"error": "..."}`，不要让前端白屏
 
 ## 如果做不完怎么办
@@ -145,21 +145,21 @@ ai-export-demo/
 **老师验收的核心**是演示路径走得通，不是代码完美。优先级排序：
 
 ```
-P0（必须做）:
+P0
   - 工作台页面能打开，4 个按钮能切换
   - AI 聊天能收发消息（走通了 deepseek-chat）
   - 客服界面能看到顾客列表和销量数字（模拟数据即可）
 
-P1（尽量做）:
+P1
   - AI 客服能生成回复
   - 营销助手能生成帖子
 
-P2（有时间就做）:
+P2
   - 帖子编辑后发布 + 弹窗
   - 示例店铺文档 + store_kb 加载
 ```
 
-如果到了截止日期 P0 还没做完，我来接手善后。不用担心。
+
 
 ## 如何开始
 
@@ -178,5 +178,3 @@ python app.py
 # 4. 测试
 # 5. git commit
 ```
-
-有任何问题在群里问，或者直接找我。
