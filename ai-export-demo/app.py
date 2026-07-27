@@ -32,6 +32,7 @@ from app_format import (
     format_comprehensive,
 )
 
+from agents import chat_agent, cs_agent, social_agent
 from rag.chroma_client import get_collection_count
 import config
 
@@ -339,6 +340,23 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
   .hero { padding: 40px 16px 30px; }
   .nav-links a { padding: 6px 10px; font-size: 13px; }
 }
+/* Agent 工作台样式 */
+.agent-btn.active {
+  color: white !important;
+  background: #1e293b !important;
+  border-left-color: #3b82f6 !important;
+}
+.agent-btn:hover {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+.stat-box .val { font-size: 20px; font-weight: 700; color: #0f172a; }
+.stat-box .label { font-size: 12px; color: #94a3b8; }
+.customer-item { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; }
+.customer-item:hover { background: #f1f5f9; }
+.customer-item .status { display: inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+.status.online { background:#10b981; }
+.status.offline { background:#94a3b8; }
 </style>
 </head>
 <body>
@@ -349,6 +367,7 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
   <div class="nav-links">
     <a href="#home">首页</a>
     <a href="#analyze">全面产品分析</a>
+    <a href="#workspace">Agent工作台</a>
     <a href="#platforms">海外平台介绍</a>
     <a href="#rates">汇率咨询</a>
   </div>
@@ -481,6 +500,82 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 <div id="errorBox" class="error-box" style="display:none"></div>
 
 <div class="footer">⚠️ AI 辅助分析 · 基于预置知识库生成 · 仅供 Demo 演示参考</div>
+</div>
+</div>
+<!-- ==================== Page: Workspace ==================== -->
+<div id="page-workspace" class="page">
+<div class="container">
+  <div class="header"><h1>🛠️ Agent 工作台</h1><p>选择左侧 Agent 开始操作</p></div>
+  <div style="display:flex; gap:20px; margin-top:16px;">
+    <!-- 侧边栏 -->
+    <div style="width:200px; flex-shrink:0; background:#0f172a; border-radius:12px; padding:12px 0; color:white; height:fit-content;">
+      <button onclick="switchAgent('analysis')" class="agent-btn active" data-agent="analysis" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">🤖 分析助手</button>
+      <button onclick="switchAgent('chat')" class="agent-btn" data-agent="chat" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">💬 AI 聊天</button>
+      <button onclick="switchAgent('customer-service')" class="agent-btn" data-agent="customer-service" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">🛒 客服助手</button>
+      <button onclick="switchAgent('marketing')" class="agent-btn" data-agent="marketing" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">📣 营销助手</button>
+    </div>
+    <!-- 右侧工作区 -->
+    <div style="flex:1; background:white; border-radius:12px; padding:20px; border:1px solid #e2e8f0; min-height:400px;">
+      <!-- 分析助手 -->
+      <div id="agent-analysis" class="agent-content" style="display:block;">
+        <h3>🤖 分析助手</h3>
+        <p>使用原有的"全面产品分析"功能进行深度市场分析。</p>
+        <a href="#analyze" class="btn btn-primary" style="display:inline-block; margin-top:12px;">前往分析页面 →</a>
+      </div>
+      <!-- AI 聊天 -->
+      <div id="agent-chat" class="agent-content" style="display:none;">
+        <h3>💬 AI 聊天</h3>
+        <div id="chatMessages" style="height:300px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:12px; background:#f8fafc;">
+          <div class="chat-bot" style="text-align:left; margin:8px 0; background:white; padding:10px; border-radius:8px; max-width:80%; display:inline-block; border:1px solid #e2e8f0;">你好！我是你的跨境电商助手，有什么可以帮你？</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="chatInput" placeholder="输入消息..." style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:8px;">
+          <button onclick="sendChatMessage()" class="btn btn-primary">发送</button>
+        </div>
+      </div>
+      <!-- 客服助手 -->
+      <div id="agent-customer-service" class="agent-content" style="display:none;">
+        <h3>🛒 客服助手</h3>
+        <div id="csStats" style="display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap;">
+          <div class="stat-box" style="background:#f8fafc; padding:12px 20px; border-radius:8px; border:1px solid #e2e8f0; flex:1; min-width:120px;"><div class="label">今日收入</div><div class="val" id="csRevenue">$0</div></div>
+          <div class="stat-box" style="background:#f8fafc; padding:12px 20px; border-radius:8px; border:1px solid #e2e8f0; flex:1; min-width:120px;"><div class="label">今日订单</div><div class="val" id="csOrders">0</div></div>
+          <div class="stat-box" style="background:#f8fafc; padding:12px 20px; border-radius:8px; border:1px solid #e2e8f0; flex:1; min-width:120px;"><div class="label">待处理消息</div><div class="val" id="csPending">0</div></div>
+        </div>
+        <div style="display:flex; gap:16px;">
+          <div style="width:200px; flex-shrink:0; border-right:1px solid #e2e8f0; padding-right:12px;">
+            <h4 style="font-size:14px;">顾客列表</h4>
+            <div id="csCustomerList"></div>
+          </div>
+          <div style="flex:1;">
+            <div id="csChatWindow" style="border:1px solid #e2e8f0; border-radius:8px; padding:12px; min-height:150px; background:#f8fafc;">
+              <p class="empty-state">选择一位顾客查看对话</p>
+            </div>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+              <input type="text" id="csReplyInput" placeholder="输入回复..." style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+              <button onclick="csSendReply()" class="btn btn-primary" style="padding:8px 16px; font-size:13px;">发送</button>
+              <button onclick="csGenerateReply()" class="btn btn-secondary" style="padding:8px 16px; font-size:13px;">✨ AI 生成回复</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 营销助手 -->
+      <div id="agent-marketing" class="agent-content" style="display:none;">
+        <h3>📣 营销助手</h3>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <input type="text" id="marketingProduct" placeholder="输入产品名称..." style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:8px;" value="X100 智能运动手表">
+          <button onclick="generateSocialPost()" class="btn btn-primary">生成帖子</button>
+        </div>
+        <div id="postPreview" style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; background:#f8fafc; min-height:150px;">
+          <p class="empty-state">点击"生成帖子"预览内容</p>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+          <button onclick="publishTo('x')" class="btn btn-secondary" style="background:#000; color:white;">𝕏 发布到 X</button>
+          <button onclick="publishTo('facebook')" class="btn btn-secondary" style="background:#1877f2; color:white;">📘 发布到 Facebook</button>
+          <button onclick="publishTo('instagram')" class="btn btn-secondary" style="background:#e4405f; color:white;">📸 发布到 Instagram</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -1141,6 +1236,171 @@ function switchSubTab(index) {
     var contents = container.querySelectorAll(".sub-tab-content");
     for (var i = 0; i < contents.length; i++) { contents[i].className = "sub-tab-content" + (i === index ? " active" : ""); }
 }
+// ==================== Agent 工作台 ====================
+let currentAgent = 'analysis';
+let selectedCustomer = null;
+let chatHistory = [];
+
+function switchAgent(agent) {
+    document.querySelectorAll('.agent-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.agent-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('agent-' + agent).style.display = 'block';
+    document.querySelector(`.agent-btn[data-agent="${agent}"]`).classList.add('active');
+    currentAgent = agent;
+    if (agent === 'customer-service') loadCustomerService();
+}
+
+// 聊天
+async function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    const chatDiv = document.getElementById('chatMessages');
+    const userDiv = document.createElement('div');
+    userDiv.className = 'chat-user';
+    userDiv.style.textAlign = 'right';
+    userDiv.style.margin = '8px 0';
+    userDiv.innerHTML = `<span style="background:#3b82f6; color:white; padding:10px; border-radius:8px; display:inline-block; max-width:80%;">${msg}</span>`;
+    chatDiv.appendChild(userDiv);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+
+    chatHistory.push({role: 'user', content: msg});
+    try {
+        const resp = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: msg, history: chatHistory})
+        });
+        const data = await resp.json();
+        const reply = data.reply || '（无回复）';
+        chatHistory.push({role: 'assistant', content: reply});
+        const botDiv = document.createElement('div');
+        botDiv.className = 'chat-bot';
+        botDiv.style.textAlign = 'left';
+        botDiv.style.margin = '8px 0';
+        botDiv.innerHTML = `<span style="background:white; padding:10px; border-radius:8px; display:inline-block; max-width:80%; border:1px solid #e2e8f0;">${reply}</span>`;
+        chatDiv.appendChild(botDiv);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    } catch (e) {
+        alert('发送失败: ' + e.message);
+    }
+}
+
+// 客服
+let csCustomers = [];
+
+async function loadCustomerService() {
+    try {
+        const [salesRes, queueRes] = await Promise.all([
+            fetch('/api/cs/sales', {method: 'POST'}),
+            fetch('/api/cs/queue', {method: 'POST'})
+        ]);
+        const sales = (await salesRes.json()).data || {};
+        const queue = (await queueRes.json()).data || [];
+        document.getElementById('csRevenue').textContent = '$' + (sales.today_revenue || 0);
+        document.getElementById('csOrders').textContent = sales.today_orders || 0;
+        document.getElementById('csPending').textContent = sales.pending_messages || 0;
+        csCustomers = queue;
+        renderCustomerList(queue);
+        if (queue.length) selectCustomer(queue[0].id);
+    } catch (e) {
+        console.error('加载客服数据失败:', e);
+    }
+}
+
+function renderCustomerList(customers) {
+    const list = document.getElementById('csCustomerList');
+    list.innerHTML = '';
+    customers.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'customer-item';
+        div.innerHTML = `<span class="status ${c.status}"></span> ${c.name}<br><span style="font-size:12px;color:#94a3b8;">${c.last_message}</span>`;
+        div.onclick = () => selectCustomer(c.id);
+        list.appendChild(div);
+    });
+}
+
+function selectCustomer(id) {
+    selectedCustomer = csCustomers.find(c => c.id === id);
+    if (!selectedCustomer) return;
+    const win = document.getElementById('csChatWindow');
+    win.innerHTML = `<div style="font-weight:bold;">${selectedCustomer.name}</div>
+                     <div style="font-size:13px;color:#475569;margin:4px 0;">${selectedCustomer.last_message}</div>
+                     <div style="font-size:12px;color:#94a3b8;">${selectedCustomer.time} · 产品: ${selectedCustomer.product}</div>`;
+    document.getElementById('csReplyInput').value = '';
+}
+
+async function csGenerateReply() {
+    if (!selectedCustomer) { alert('请先选择一位顾客'); return; }
+    try {
+        const resp = await fetch('/api/cs/reply', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: selectedCustomer.last_message, product: selectedCustomer.product})
+        });
+        const data = await resp.json();
+        document.getElementById('csReplyInput').value = data.reply || '';
+    } catch (e) {
+        alert('生成回复失败: ' + e.message);
+    }
+}
+
+function csSendReply() {
+    const input = document.getElementById('csReplyInput');
+    const reply = input.value.trim();
+    if (!reply) return;
+    alert('✅ 已发送回复给 ' + selectedCustomer.name + '：' + reply);
+    input.value = '';
+}
+
+// 营销
+let currentPost = null;
+
+async function generateSocialPost() {
+    const product = document.getElementById('marketingProduct').value.trim();
+    if (!product) { alert('请输入产品名称'); return; }
+    try {
+        const resp = await fetch('/api/social/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({product_name: product})
+        });
+        const data = await resp.json();
+        currentPost = data;
+        let html = `<div style="margin-bottom:8px;"><strong>X (Twitter):</strong><br><textarea id="postX" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;" rows="2">${data.x_post || ''}</textarea></div>`;
+        html += `<div style="margin-bottom:8px;"><strong>Facebook:</strong><br><textarea id="postFacebook" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;" rows="2">${data.facebook_post || ''}</textarea></div>`;
+        html += `<div style="margin-bottom:8px;"><strong>Instagram:</strong><br><textarea id="postInstagram" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;" rows="2">${data.instagram_post || ''}</textarea></div>`;
+        html += `<div style="font-size:12px;color:#94a3b8;">推荐平台: ${data.best_platform || 'x'} · ${data.reasoning || ''}</div>`;
+        document.getElementById('postPreview').innerHTML = html;
+    } catch (e) {
+        alert('生成失败: ' + e.message);
+    }
+}
+
+async function publishTo(platform) {
+    let content = '';
+    if (platform === 'x') content = document.getElementById('postX')?.value;
+    else if (platform === 'facebook') content = document.getElementById('postFacebook')?.value;
+    else if (platform === 'instagram') content = document.getElementById('postInstagram')?.value;
+    if (!content) { alert('请先生成帖子或填写内容'); return; }
+    try {
+        const resp = await fetch('/api/social/publish', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({platform: platform, content: content})
+        });
+        const data = await resp.json();
+        alert(data.message || '发布成功！');
+    } catch (e) {
+        alert('发布失败: ' + e.message);
+    }
+}
+
+// 初始化工作台
+if (document.getElementById('agent-analysis')) {
+    switchAgent('analysis');
+}
 </script>
 </body>
 </html>"""
@@ -1285,6 +1545,57 @@ async def rates_history(target: str = "CNY", months: int = 12):
         return {"target": target, "base": "USD", "history": [],
                 "stats": {}, "forecast": [], "error": str(e)}
 
+# ================================================================
+# Agent 工作台 API
+# ================================================================
+
+@app.post("/api/chat")
+async def chat_api(request: Request):
+    """AI 聊天"""
+    data = await request.json()
+    message = data.get("message", "")
+    history = data.get("history", [])
+    reply = chat_agent.chat(message, history)
+    return {"reply": reply}
+
+
+@app.post("/api/cs/sales")
+async def cs_sales():
+    """获取客服销量数据（模拟）"""
+    return {"data": cs_agent.fetch_sales_data()}
+
+
+@app.post("/api/cs/queue")
+async def cs_queue():
+    """获取客服顾客队列（模拟）"""
+    return {"data": cs_agent.fetch_customer_queues()}
+
+
+@app.post("/api/cs/reply")
+async def cs_reply(request: Request):
+    """AI 生成客服回复"""
+    data = await request.json()
+    reply = cs_agent.generate_reply(
+        data.get("message", ""),
+        data.get("product", "")
+    )
+    return {"reply": reply}
+
+
+@app.post("/api/social/generate")
+async def social_generate(request: Request):
+    """生成社交媒体帖子"""
+    data = await request.json()
+    post = social_agent.generate_post(data.get("product_name", ""))
+    return post
+
+
+@app.post("/api/social/publish")
+async def social_publish(request: Request):
+    """发布到社交平台（模拟）"""
+    data = await request.json()
+    result = social_agent.publish(data.get("platform", ""), data.get("content", ""))
+    return result
 
 @app.post("/analyze")
 async def analyze(request: Request):
