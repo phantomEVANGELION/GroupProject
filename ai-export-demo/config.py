@@ -35,3 +35,6 @@ SAMPLE_DATA_DIR = os.path.join(BASE_DIR, "sample_data")
 
 # ========== LLM 超时 ==========
 LLM_TIMEOUT = 60  # 单次 LLM 调用超时（秒）
+
+# ========== 社交平台发布配置 ==========
+ENABLE_SOCIAL_PUBLISH = False  # 设为 True 时执行真实发布（需配置各平台 API Key）
