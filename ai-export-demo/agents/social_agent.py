@@ -63,28 +63,39 @@ def generate_post(product_name: str = "") -> dict:
         timeout=config.LLM_TIMEOUT,
     )
 
-    prompt = f"""你是一个跨境电商社交媒体运营，需要为产品生成推广帖子。
+    prompt = f"""你是一个跨境电商社交媒体运营专家。请为以下产品生成推广帖子。
+
+【当前推广产品】
+{product_name or "智能运动手表"}
+
+【店铺信息】
+{context if context.strip() else "暂无详细店铺信息，请基于产品名称和通用知识生成。"}
 
 店铺产品信息：
 {context}
 
-请生成以下内容（用 JSON 格式返回）：
-1. x_post: X/Twitter 风格的帖子（≤280字符，带话题标签）
-2. facebook_post: Facebook 风格的帖子（较长，可带 emoji，带产品链接描述）
-3. instagram_post: Instagram 风格的帖子（简短，视觉化描述，带话题标签）
-4. hashtags: 推荐的话题标签列表（5-8个）
-5. best_platform: 最适合首发此帖的平台（x/facebook/instagram）
-6. reasoning: 选择该平台的原因
+【强制要求 - 必须严格执行】
+1. **X (Twitter)**：字数 ≤ 280 字符（中文约 40-60 字），**纯文字**，不加 emoji，像新闻快讯/产品公告，用短句和感叹号。必须包含 3-4 个话题标签。
+   示例风格："X100智能手表发布！7天续航，AMOLED屏幕，IP68防水。运动数据精准，健康监测全面。适合所有健身爱好者。#SmartWatch #FitnessTech"
 
+2. **Facebook**：字数 150-250 字（中文），**必须加 emoji**，像品牌故事/软文推荐，有开头、中间、结尾三段式结构。有号召性语言（如"点击链接"、"立即购买"）。
+   示例风格："🏃 跑步爱好者看过来！我们花了两年时间打造的 X100 智能手表，终于来了。它不仅仅是一块手表，更是你运动路上的私人教练。精准的 GPS 定位，7天超长续航，让你一次充电跑遍全城。无论是晨跑还是夜跑，IP68 防水都能应对。现在下单，还有专属优惠等着你！点击下方链接了解更多吧！👇"
+
+3. **Instagram**：字数 80-120 字（中文），**必须加 emoji**，像视觉种草文案，强调生活方式、画面感、感受。使用 5-8 个话题标签。
+   示例风格："✨ 戴上 X100，感受每一公里的心跳。🏃‍♂️ 从晨光到夜色，它记录的不只是运动数据，更是我坚持的每一步。❤️ 轻巧、防水、续航超长，简直是我的完美搭档！你也想要这样的运动伙伴吗？ #WearableTech #RunningLife"
+
+【输出格式】
 {{
-  "x_post": "",
-  "facebook_post": "",
-  "instagram_post": "",
-  "hashtags": [],
-  "best_platform": "",
-  "reasoning": ""
-}}"""
+  "x_post": "（X/Twitter 帖子，纯文字，不加emoji，含话题标签）",
+  "facebook_post": "（Facebook 帖子，加emoji，150-250字，故事结构）",
+  "instagram_post": "（Instagram 帖子，加emoji，80-120字，种草风格）",
+  "hashtags": ["#通用标签1", "#通用标签2"],
+  "best_platform": "x/facebook/instagram",
+  "reasoning": "选择该平台的原因"
+}}
 
+⚠️ 重要提醒：三篇内容绝对不能一样！每篇从不同角度切入，字数、语气、结构都要有明显差异。X 偏硬核公告，Facebook 偏品牌故事，Instagram 偏视觉种草。"""
+    
     try:
         result = llm.invoke(prompt).content
         parsed = _safe_parse_json(result)
