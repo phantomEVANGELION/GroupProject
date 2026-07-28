@@ -9,7 +9,8 @@ import time
 import traceback
 import asyncio
 import urllib.request
-from datetime import date, timedelta
+import sqlite3
+from datetime import date, timedelta, datetime
 
 # 确保在项目根目录
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -56,6 +57,35 @@ async def lifespan(app: FastAPI):
     print("👋 应用关闭")
 
 app = FastAPI(title="AI 跨境出海运营助手", lifespan=lifespan)
+
+# ================================================================
+# 历史记录数据库
+# ================================================================
+
+DB_PATH = os.path.join(config.BASE_DIR, "data", "history.db")
+
+def init_db():
+    """初始化历史记录数据库"""
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS histories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_name TEXT NOT NULL,
+            product_description TEXT,
+            created_at TEXT NOT NULL,
+            result_json TEXT NOT NULL,
+            summary TEXT,
+            recommended_markets TEXT,
+            key_strategy TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# 启动时初始化
+init_db()
 
 # ========== 文件上传配置 ==========
 UPLOAD_DIR = os.path.join(config.BASE_DIR, "data", "uploads")
@@ -357,6 +387,179 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
 .customer-item .status { display: inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
 .status.online { background:#10b981; }
 .status.offline { background:#94a3b8; }
+
+/* ========== 社交卡片样式 ========== */
+.social-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+.social-tab-btn {
+    padding: 8px 20px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.social-tab-btn.active {
+    color: #1e293b;
+    background: #f1f5f9;
+}
+.social-tab-btn:hover {
+    background: #f1f5f9;
+}
+.social-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.social-card .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.social-card .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+.social-card .user-info {
+    flex: 1;
+}
+.social-card .user-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1e293b;
+}
+.social-card .user-handle {
+    font-size: 13px;
+    color: #94a3b8;
+}
+.social-card .user-time {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+.social-card .content {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #1e293b;
+    margin: 12px 0 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.social-card .hashtags {
+    color: #1d9bf0;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+.social-card .media-placeholder {
+    background: #f1f5f9;
+    border-radius: 8px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 12px;
+    border: 1px dashed #cbd5e1;
+}
+.social-card .actions {
+    display: flex;
+    gap: 20px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 12px;
+    margin-top: 4px;
+}
+.social-card .actions span {
+    font-size: 14px;
+    color: #64748b;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.social-card .actions span:hover {
+    color: #3b82f6;
+}
+.social-card .open-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 16px;
+    background: #f1f5f9;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.social-card .open-btn:hover {
+    background: #e2e8f0;
+    color: #3b82f6;
+}
+
+/* X (Twitter) 风格 */
+.twitter-card .avatar { background: #1d9bf0; }
+.twitter-card .user-name { color: #1e293b; }
+.twitter-card .actions span:hover { color: #1d9bf0; }
+
+/* Facebook 风格 */
+.fb-card .avatar { background: #1877f2; }
+.fb-card .user-name { color: #1e293b; }
+.fb-card .actions span:hover { color: #1877f2; }
+
+/* Instagram 风格 */
+.ig-card .avatar { 
+    background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af);
+}
+.ig-card .user-name { color: #1e293b; }
+.ig-card .actions span:hover { color: #dd2a7b; }
+
+/* 历史记录表格 */
+#historyList table {
+    font-size: 14px;
+    width: 100%;
+    border-collapse: collapse;
+}
+#historyList th {
+    font-weight: 600;
+    color: #475569;
+    background: #f8fafc;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+}
+#historyList td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e2e8f0;
+}
+#historyList tr:hover {
+    background: #f8fafc;
+}
+#historyList tr.selected {
+    background: #eff6ff;
+}
 </style>
 </head>
 <body>
@@ -513,6 +716,8 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
       <button onclick="switchAgent('chat')" class="agent-btn" data-agent="chat" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">💬 AI 聊天</button>
       <button onclick="switchAgent('customer-service')" class="agent-btn" data-agent="customer-service" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">🛒 客服助手</button>
       <button onclick="switchAgent('marketing')" class="agent-btn" data-agent="marketing" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">📣 营销助手</button>
+      <button onclick="switchAgent('file-analysis')" class="agent-btn" data-agent="file-analysis" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">📄 文件分析</button>
+      <button onclick="switchAgent('history')" class="agent-btn" data-agent="history" style="display:block; width:100%; padding:14px 20px; background:transparent; border:none; color:#94a3b8; text-align:left; font-size:14px; cursor:pointer; border-left:3px solid transparent;">📜 历史记录</button>
     </div>
     <!-- 右侧工作区 -->
     <div style="flex:1; background:white; border-radius:12px; padding:20px; border:1px solid #e2e8f0; min-height:400px;">
@@ -572,6 +777,82 @@ blockquote { background: #f1f5f9; border-left: 4px solid #3b82f6; border-radius:
           <button onclick="publishTo('x')" class="btn btn-secondary" style="background:#000; color:white;">𝕏 发布到 X</button>
           <button onclick="publishTo('facebook')" class="btn btn-secondary" style="background:#1877f2; color:white;">📘 发布到 Facebook</button>
           <button onclick="publishTo('instagram')" class="btn btn-secondary" style="background:#e4405f; color:white;">📸 发布到 Instagram</button>
+        </div>
+      </div>
+      <!-- 文件分析 -->
+      <div id="agent-file-analysis" class="agent-content" style="display:none;">
+        <h3>📄 文件分析</h3>
+        <p style="color:#64748b; font-size:14px; margin-bottom:12px;">上传 TXT 或 JSON 文件，AI 自动分析并生成摘要、评价和建议</p>
+        
+        <!-- 上传区 -->
+        <div id="fileAnalysisUploadArea" style="border:2px dashed #cbd5e1; border-radius:10px; padding:30px; text-align:center; margin-bottom:16px; transition: border-color .2s;">
+            <input type="file" id="fileAnalysisInput" accept=".txt,.json" hidden>
+            <div style="font-size:40px; margin-bottom:8px;">📂</div>
+            <p style="color:#64748b; margin-bottom:8px;">点击选择文件，或将文件拖拽到此区域</p>
+            <button onclick="document.getElementById('fileAnalysisInput').click()" class="btn btn-secondary" style="font-size:13px;">选择文件</button>
+            <span style="font-size:12px; color:#94a3b8; margin-left:10px;">支持 .txt .json</span>
+            <div id="fileAnalysisName" style="margin-top:10px; font-size:14px; color:#3b82f6; display:none;"></div>
+        </div>
+        
+        <!-- 分析结果 -->
+        <div id="fileAnalysisResult" style="display:none;">
+            <div class="result-card" style="background:#f8fafc; border-left:3px solid #3b82f6; padding:16px; border-radius:8px; margin-bottom:12px;">
+                <h4 style="font-size:14px; color:#64748b; margin-bottom:4px;">📋 核心摘要</h4>
+                <p id="faSummary" style="font-size:15px; color:#1e293b;"></p>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div class="result-card" style="background:#f0fdf4; border-left:3px solid #22c55e; padding:12px 16px; border-radius:8px;">
+                    <h4 style="font-size:13px; color:#22c55e; margin-bottom:4px;">✅ 正面评价</h4>
+                    <ul id="faPositive" style="padding-left:16px; font-size:14px; color:#1e293b; margin:0;"></ul>
+                </div>
+                <div class="result-card" style="background:#fef2f2; border-left:3px solid #ef4444; padding:12px 16px; border-radius:8px;">
+                    <h4 style="font-size:13px; color:#ef4444; margin-bottom:4px;">❌ 负面评价</h4>
+                    <ul id="faNegative" style="padding-left:16px; font-size:14px; color:#1e293b; margin:0;"></ul>
+                </div>
+            </div>
+            <div class="result-card" style="background:#fefce8; border-left:3px solid #eab308; padding:12px 16px; border-radius:8px; margin-bottom:12px;">
+                <h4 style="font-size:13px; color:#ca8a04; margin-bottom:4px;">💡 改进建议</h4>
+                <ul id="faImprovements" style="padding-left:16px; font-size:14px; color:#1e293b; margin:0;"></ul>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px; background:white; border-radius:8px; padding:12px 16px; border:1px solid #e2e8f0; margin-bottom:12px;">
+                <span style="font-size:14px; font-weight:600; color:#1e293b;">📊 情感评分</span>
+                <div style="flex:1; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                    <div id="faSentimentFill" style="height:100%; width:0%; background:linear-gradient(90deg,#ef4444,#eab308,#22c55e); border-radius:4px; transition:width .5s;"></div>
+                </div>
+                <span id="faSentimentLabel" style="font-size:16px; font-weight:700; color:#1e293b; min-width:60px; text-align:right;">0/10</span>
+            </div>
+            <button onclick="exportFileAnalysis()" class="btn btn-primary" style="width:100%;">📥 导出 TXT</button>
+        </div>
+        
+        <div id="faLoading" style="display:none; text-align:center; padding:30px; color:#94a3b8;">
+            ⏳ AI 正在分析... 请稍候
+        </div>
+      </div>
+      <!-- 历史记录 -->
+      <div id="agent-history" class="agent-content" style="display:none;">
+        <h3>📜 历史记录</h3>
+        <p style="color:#64748b; font-size:14px; margin-bottom:12px;">查看之前的产品分析记录，支持对比</p>
+        
+        <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+            <button onclick="loadHistory()" class="btn btn-primary" style="font-size:13px;">🔄 刷新列表</button>
+            <button onclick="toggleCompareMode()" class="btn btn-secondary" style="font-size:13px;" id="compareToggleBtn">📊 对比模式</button>
+            <button onclick="clearSelection()" class="btn btn-secondary" style="font-size:13px; display:none;" id="clearSelectionBtn">✕ 清除选择</button>
+        </div>
+        
+        <!-- 对比模式提示 -->
+        <div id="compareHint" style="display:none; background:#fefce8; border:1px solid #eab308; border-radius:8px; padding:10px 16px; margin-bottom:12px; font-size:13px; color:#854d0e;">
+            💡 对比模式已开启。勾选两个记录进行对比，再次点击「对比模式」可关闭。
+        </div>
+        
+        <!-- 历史列表 -->
+        <div id="historyList" style="background:white; border-radius:8px; border:1px solid #e2e8f0; overflow:hidden;">
+            <div style="padding:20px; text-align:center; color:#94a3b8;">⏳ 加载中...</div>
+        </div>
+        
+        <!-- 对比结果 -->
+        <div id="compareResult" style="display:none; margin-top:16px;">
+            <h4 style="margin-bottom:12px;">📊 对比分析</h4>
+            <div id="compareContent" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;"></div>
         </div>
       </div>
     </div>
@@ -785,7 +1066,7 @@ var routerCheck = setInterval(function() {
 }, 500);
 
 // ==================== Rate Detail Modal ====================
-function showRateDetail(code, name) {
+async function showRateDetail(code, name) {
     var modal = document.getElementById("rateModal");
     document.getElementById("rateModalTitle").textContent = "USD / " + code;
     document.getElementById("rateModalSub").textContent = name + " · 近 12 个月走势";
@@ -794,24 +1075,36 @@ function showRateDetail(code, name) {
     modal.classList.add("active");
     document.body.style.overflow = "hidden";
 
-    fetch("/api/rates/history?target=" + code + "&months=12")
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.error) {
-                document.getElementById("rateAnalysis").textContent = "❌ 获取失败: " + data.error;
-                return;
-            }
-            if (!data.history || data.history.length < 2) {
-                document.getElementById("rateAnalysis").textContent = "❌ 历史数据不足";
-                return;
-            }
-            renderRateChart(data, code, name);
-            renderRateStats(data.stats);
-            renderRateAnalysis(data, code, name);
-        })
-        .catch(function(e) {
-            document.getElementById("rateAnalysis").textContent = "❌ 网络错误: " + e.message;
+    // 增加超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
+
+    try {
+        const resp = await fetch(`/api/rates/history?target=${code}&months=12`, {
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
+        
+        const data = await resp.json();
+        if (data.error) {
+            document.getElementById("rateAnalysis").textContent = "❌ 获取失败: " + data.error;
+            return;
+        }
+        if (!data.history || data.history.length < 2) {
+            document.getElementById("rateAnalysis").textContent = "❌ 历史数据不足";
+            return;
+        }
+        renderRateChart(data, code, name);
+        renderRateStats(data.stats);
+        renderRateAnalysis(data, code, name);
+    } catch (e) {
+        clearTimeout(timeoutId);
+        if (e.name === 'AbortError') {
+            document.getElementById("rateAnalysis").textContent = "❌ 请求超时，请稍后重试";
+        } else {
+            document.getElementById("rateAnalysis").textContent = "❌ 网络错误: " + e.message;
+        }
+    }
 }
 
 function closeRateModal() {
@@ -1354,36 +1647,177 @@ function csSendReply() {
     input.value = '';
 }
 
-// 营销
+// 营销助手 - 生成帖子（社交卡片版）
 let currentPost = null;
+let activeSocialTab = 'x';
 
-async function generateSocialPost() {
+function generateSocialPost() {
     const product = document.getElementById('marketingProduct').value.trim();
     if (!product) { alert('请输入产品名称'); return; }
-    try {
-        const resp = await fetch('/api/social/generate', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({product_name: product})
-        });
-        const data = await resp.json();
+    
+    const btn = event ? event.target : document.querySelector('#agent-marketing .btn-primary');
+    if (btn) btn.disabled = true;
+    document.getElementById('postPreview').innerHTML = '<p style="text-align:center;color:#94a3b8;">⏳ 生成中...</p>';
+
+    fetch('/api/social/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({product_name: product})
+    })
+    .then(res => res.json())
+    .then(data => {
         currentPost = data;
-        let html = `<div style="margin-bottom:8px;"><strong>X (Twitter):</strong><br><textarea id="postX" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;" rows="2">${data.x_post || ''}</textarea></div>`;
-        html += `<div style="margin-bottom:8px;"><strong>Facebook:</strong><br><textarea id="postFacebook" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;" rows="2">${data.facebook_post || ''}</textarea></div>`;
-        html += `<div style="margin-bottom:8px;"><strong>Instagram:</strong><br><textarea id="postInstagram" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;" rows="2">${data.instagram_post || ''}</textarea></div>`;
-        html += `<div style="font-size:12px;color:#94a3b8;">推荐平台: ${data.best_platform || 'x'} · ${data.reasoning || ''}</div>`;
-        document.getElementById('postPreview').innerHTML = html;
-    } catch (e) {
+        renderSocialCards(data);
+        if (btn) btn.disabled = false;
+    })
+    .catch(e => {
         alert('生成失败: ' + e.message);
-    }
+        if (btn) btn.disabled = false;
+    });
+}
+
+function renderSocialCards(data) {
+    const container = document.getElementById('postPreview');
+    
+    // 构建三个平台的卡片 HTML（每个独立）
+    const xHtml = buildXCard(data.x_post || '');
+    const fbHtml = buildFacebookCard(data.facebook_post || '');
+    const igHtml = buildInstagramCard(data.instagram_post || '');
+
+    // 生成 Tab 导航 + 三个独立内容区
+    let html = `
+        <div class="social-tabs">
+            <button class="social-tab-btn active" onclick="switchSocialTab('x')">𝕏 X</button>
+            <button class="social-tab-btn" onclick="switchSocialTab('facebook')">📘 Facebook</button>
+            <button class="social-tab-btn" onclick="switchSocialTab('instagram')">📸 Instagram</button>
+        </div>
+        <div id="socialTabX" class="social-tab-panel">${xHtml}</div>
+        <div id="socialTabFacebook" class="social-tab-panel" style="display:none;">${fbHtml}</div>
+        <div id="socialTabInstagram" class="social-tab-panel" style="display:none;">${igHtml}</div>
+        <div style="margin-top:12px; font-size:12px; color:#94a3b8; text-align:center;">
+            💡 点击下方「打开网页」可跳转到真实平台（仅供预览）
+        </div>
+    `;
+    container.innerHTML = html;
+}
+
+function switchSocialTab(tab) {
+    // 更新 Tab 按钮状态
+    document.querySelectorAll('.social-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.social-tab-btn').forEach(btn => {
+        if (btn.textContent.includes(tab === 'x' ? 'X' : tab === 'facebook' ? 'Facebook' : 'Instagram')) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // 直接显示/隐藏对应的独立容器（不复制！）
+    document.getElementById('socialTabX').style.display = tab === 'x' ? 'block' : 'none';
+    document.getElementById('socialTabFacebook').style.display = tab === 'facebook' ? 'block' : 'none';
+    document.getElementById('socialTabInstagram').style.display = tab === 'instagram' ? 'block' : 'none';
+}
+
+function buildXCard(text) {
+    // 提取 hashtags 用于显示
+    const hashtags = text.match(/#\w+/g) || [];
+    const displayText = text.replace(/#\w+/g, '').trim();
+    
+    return `
+        <div class="social-card twitter-card">
+            <div class="header">
+                <div class="avatar">🐦</div>
+                <div class="user-info">
+                    <div class="user-name">TechWear Global</div>
+                    <div class="user-handle">@TechWear_Global · 刚刚</div>
+                </div>
+            </div>
+            <div class="content">${displayText}</div>
+            ${hashtags.length ? `<div class="hashtags">${hashtags.join(' ')}</div>` : ''}
+            <div class="actions">
+                <span>💬 12</span>
+                <span>🔁 8</span>
+                <span>❤️ 24</span>
+                <span>📊 2.3k</span>
+            </div>
+            <a href="https://x.com" target="_blank" class="open-btn">🌐 在 X 上打开</a>
+        </div>
+    `;
+}
+
+function buildFacebookCard(text) {
+    return `
+        <div class="social-card fb-card">
+            <div class="header">
+                <div class="avatar">📘</div>
+                <div class="user-info">
+                    <div class="user-name">TechWear Official</div>
+                    <div class="user-time">刚刚 · 🌍 公开</div>
+                </div>
+            </div>
+            <div class="content">${text}</div>
+            <div class="actions">
+                <span>👍 45</span>
+                <span>💬 8</span>
+                <span>↗️ 12</span>
+            </div>
+            <a href="https://facebook.com" target="_blank" class="open-btn">🌐 在 Facebook 上打开</a>
+        </div>
+    `;
+}
+
+function buildInstagramCard(text) {
+    return `
+        <div class="social-card ig-card">
+            <div class="header">
+                <div class="avatar">📸</div>
+                <div class="user-info">
+                    <div class="user-name">techwear_wearables</div>
+                    <div class="user-time">刚刚</div>
+                </div>
+            </div>
+            <div class="media-placeholder">
+                🖼️ 图片占位 · 实际发布时上传产品图
+            </div>
+            <div class="content">${text}</div>
+            <div class="actions">
+                <span>❤️ 156</span>
+                <span>💬 23</span>
+                <span>📤 18</span>
+            </div>
+            <a href="https://instagram.com" target="_blank" class="open-btn">🌐 在 Instagram 上打开</a>
+        </div>
+    `;
 }
 
 async function publishTo(platform) {
+    // 根据当前激活的 Tab 获取对应内容
     let content = '';
-    if (platform === 'x') content = document.getElementById('postX')?.value;
-    else if (platform === 'facebook') content = document.getElementById('postFacebook')?.value;
-    else if (platform === 'instagram') content = document.getElementById('postInstagram')?.value;
-    if (!content) { alert('请先生成帖子或填写内容'); return; }
+    let platformName = '';
+    
+    if (platform === 'x') {
+        const card = document.querySelector('#socialTabX .content');
+        if (card) content = card.textContent.trim();
+        platformName = 'X (Twitter)';
+    } else if (platform === 'facebook') {
+        const card = document.querySelector('#socialTabFacebook .content');
+        if (card) content = card.textContent.trim();
+        platformName = 'Facebook';
+    } else if (platform === 'instagram') {
+        const card = document.querySelector('#socialTabInstagram .content');
+        if (card) content = card.textContent.trim();
+        platformName = 'Instagram';
+    }
+    
+    // 如果内容为空，提示用户先生成帖子
+    if (!content) {
+        alert('⚠️ 请先生成帖子内容！');
+        return;
+    }
+
+    // 确认发布（让用户确认内容）
+    if (!confirm(`确定要将以下内容发布到 ${platformName} 吗？\n\n${content.slice(0, 100)}${content.length > 100 ? '...' : ''}`)) {
+        return;
+    }
+
     try {
         const resp = await fetch('/api/social/publish', {
             method: 'POST',
@@ -1391,9 +1825,9 @@ async function publishTo(platform) {
             body: JSON.stringify({platform: platform, content: content})
         });
         const data = await resp.json();
-        alert(data.message || '发布成功！');
+        alert(data.message || `✅ 已成功发布到 ${platformName}！`);
     } catch (e) {
-        alert('发布失败: ' + e.message);
+        alert('❌ 发布失败: ' + e.message);
     }
 }
 
@@ -1401,6 +1835,420 @@ async function publishTo(platform) {
 if (document.getElementById('agent-analysis')) {
     switchAgent('analysis');
 }
+// ==================== 文件分析 ====================
+
+// 文件上传相关
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('fileAnalysisInput');
+    if (input) {
+        input.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const name = document.getElementById('fileAnalysisName');
+                name.textContent = '📎 ' + this.files[0].name;
+                name.style.display = 'block';
+                analyzeSelectedFile(this.files[0]);
+            }
+        });
+    }
+    
+    // 拖拽上传支持
+    const dropArea = document.getElementById('fileAnalysisUploadArea');
+    if (dropArea) {
+        dropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#3b82f6';
+        });
+        dropArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#cbd5e1';
+        });
+        dropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#cbd5e1';
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                const file = e.dataTransfer.files[0];
+                const name = document.getElementById('fileAnalysisName');
+                name.textContent = '📎 ' + file.name;
+                name.style.display = 'block';
+                analyzeSelectedFile(file);
+                // 同步更新 input
+                const input = document.getElementById('fileAnalysisInput');
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+            }
+        });
+    }
+});
+
+async function analyzeSelectedFile(file) {
+    // 检查文件类型
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['txt', 'json'].includes(ext)) {
+        alert('⚠️ 仅支持 .txt 和 .json 文件');
+        return;
+    }
+    
+    // 读取文件内容
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const content = e.target.result;
+        
+        // 显示加载状态
+        document.getElementById('faLoading').style.display = 'block';
+        document.getElementById('fileAnalysisResult').style.display = 'none';
+        
+        try {
+            const resp = await fetch('/api/analyze-file', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    content: content,
+                    filename: file.name
+                })
+            });
+            const data = await resp.json();
+            
+            document.getElementById('faLoading').style.display = 'none';
+            
+            if (data.success) {
+                renderFileAnalysisResult(data.result);
+                document.getElementById('fileAnalysisResult').style.display = 'block';
+            } else {
+                alert('❌ 分析失败: ' + (data.error || '未知错误'));
+            }
+        } catch (err) {
+            document.getElementById('faLoading').style.display = 'none';
+            alert('❌ 请求失败: ' + err.message);
+        }
+    };
+    reader.readAsText(file, 'UTF-8');
+}
+
+function renderFileAnalysisResult(result) {
+    // 摘要
+    document.getElementById('faSummary').textContent = result.summary || '（无摘要）';
+    
+    // 正面评价
+    const posList = document.getElementById('faPositive');
+    posList.innerHTML = '';
+    (result.positive_points || []).forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p;
+        posList.appendChild(li);
+    });
+    if (posList.children.length === 0) {
+        posList.innerHTML = '<li style="color:#94a3b8; list-style:none;">（无正面评价）</li>';
+    }
+    
+    // 负面评价
+    const negList = document.getElementById('faNegative');
+    negList.innerHTML = '';
+    (result.negative_points || []).forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p;
+        negList.appendChild(li);
+    });
+    if (negList.children.length === 0) {
+        negList.innerHTML = '<li style="color:#94a3b8; list-style:none;">（无负面评价）</li>';
+    }
+    
+    // 改进建议
+    const impList = document.getElementById('faImprovements');
+    impList.innerHTML = '';
+    (result.improvements || []).forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p;
+        impList.appendChild(li);
+    });
+    if (impList.children.length === 0) {
+        impList.innerHTML = '<li style="color:#94a3b8; list-style:none;">（无建议）</li>';
+    }
+    
+    // 情感评分
+    const score = Math.min(Math.max(result.sentiment_score || 0, 0), 10);
+    const label = result.sentiment_label || '中性';
+    document.getElementById('faSentimentFill').style.width = (score / 10 * 100) + '%';
+    document.getElementById('faSentimentLabel').textContent = score.toFixed(1) + '/10';
+}
+
+function exportFileAnalysis() {
+    // 收集当前显示的分析结果
+    const summary = document.getElementById('faSummary').textContent || '';
+    const positive = [];
+    document.querySelectorAll('#faPositive li').forEach(li => {
+        if (!li.textContent.includes('无正面评价')) positive.push('• ' + li.textContent);
+    });
+    const negative = [];
+    document.querySelectorAll('#faNegative li').forEach(li => {
+        if (!li.textContent.includes('无负面评价')) negative.push('• ' + li.textContent);
+    });
+    const improvements = [];
+    document.querySelectorAll('#faImprovements li').forEach(li => {
+        if (!li.textContent.includes('无建议')) improvements.push('• ' + li.textContent);
+    });
+    const scoreLabel = document.getElementById('faSentimentLabel').textContent || '0/10';
+    
+    const now = new Date();
+    const timestamp = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    
+    const text = `========================================
+📄 AI 文件分析报告
+📅 生成时间：${timestamp}
+========================================
+
+📋 核心摘要
+${summary}
+
+✅ 正面评价
+${positive.length ? positive.join('\n') : '（无）'}
+
+❌ 负面评价
+${negative.length ? negative.join('\n') : '（无）'}
+
+💡 改进建议
+${improvements.length ? improvements.join('\n') : '（无）'}
+
+📊 情感评分：${scoreLabel}
+========================================
+* 本报告由 AI 跨境出海运营助手自动生成
+* 仅供参考，请结合实际情况使用`;
+
+    // 下载 TXT
+    const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `文件分析报告_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+// ==================== 历史记录 ====================
+
+let historyData = [];
+let compareMode = false;
+let selectedIds = [];
+
+async function loadHistory() {
+    const container = document.getElementById('historyList');
+    container.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">⏳ 加载中...</div>';
+    
+    try {
+        const resp = await fetch('/api/history/list?limit=20');
+        const data = await resp.json();
+        
+        if (!data.success) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#ef4444;">❌ ' + data.error + '</div>';
+            return;
+        }
+        
+        historyData = data.data || [];
+        renderHistoryList(historyData);
+    } catch (e) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#ef4444;">❌ 加载失败: ' + e.message + '</div>';
+    }
+}
+
+function renderHistoryList(items) {
+    const container = document.getElementById('historyList');
+    
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">📭 暂无历史记录，快去分析产品吧！</div>';
+        return;
+    }
+    
+    let html = `<table style="width:100%; border-collapse:collapse; font-size:14px;">
+        <thead>
+            <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+                ${compareMode ? '<th style="padding:10px 12px; text-align:left; width:40px;">选择</th>' : ''}
+                <th style="padding:10px 12px; text-align:left;">产品</th>
+                <th style="padding:10px 12px; text-align:left;">摘要</th>
+                <th style="padding:10px 12px; text-align:left;">市场</th>
+                <th style="padding:10px 12px; text-align:left;">时间</th>
+                <th style="padding:10px 12px; text-align:left; width:120px;">操作</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    
+    items.forEach(item => {
+        const isSelected = selectedIds.includes(item.id);
+        html += `<tr style="border-bottom:1px solid #e2e8f0; ${isSelected ? 'background:#eff6ff;' : ''}">
+            ${compareMode ? `<td style="padding:10px 12px;"><input type="checkbox" class="history-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''} onclick="toggleHistorySelect(${item.id})"></td>` : ''}
+            <td style="padding:10px 12px; font-weight:600;">${item.product_name}</td>
+            <td style="padding:10px 12px; color:#64748b; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.summary}</td>
+            <td style="padding:10px 12px; color:#64748b;">${item.markets}</td>
+            <td style="padding:10px 12px; color:#94a3b8; font-size:13px;">${item.created_at.replace('T', ' ').slice(0, 16)}</td>
+            <td style="padding:10px 12px;">
+                <button onclick="viewHistory(${item.id})" class="btn btn-secondary" style="padding:4px 12px; font-size:12px;">查看</button>
+                <button onclick="deleteHistory(${item.id})" class="btn btn-secondary" style="padding:4px 12px; font-size:12px; background:#fef2f2; color:#ef4444; border-color:#fca5a5;">删除</button>
+            </td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+    
+    // 对比模式下，更新提示和按钮
+    document.getElementById('compareHint').style.display = compareMode ? 'block' : 'none';
+    document.getElementById('clearSelectionBtn').style.display = compareMode && selectedIds.length > 0 ? 'inline-block' : 'none';
+    document.getElementById('compareToggleBtn').textContent = compareMode ? '📊 退出对比' : '📊 对比模式';
+    
+    // 如果选择了两个，自动对比
+    if (selectedIds.length === 2) {
+        performCompare();
+    }
+}
+
+function toggleHistorySelect(id) {
+    const idx = selectedIds.indexOf(id);
+    if (idx > -1) {
+        selectedIds.splice(idx, 1);
+    } else {
+        if (selectedIds.length >= 2) {
+            alert('最多只能选择两个记录进行对比');
+            return;
+        }
+        selectedIds.push(id);
+    }
+    renderHistoryList(historyData);
+}
+
+function toggleCompareMode() {
+    compareMode = !compareMode;
+    if (!compareMode) {
+        selectedIds = [];
+        document.getElementById('compareResult').style.display = 'none';
+    }
+    renderHistoryList(historyData);
+}
+
+function clearSelection() {
+    selectedIds = [];
+    renderHistoryList(historyData);
+    document.getElementById('compareResult').style.display = 'none';
+}
+
+async function viewHistory(id) {
+    try {
+        const resp = await fetch(`/api/history/detail/${id}`);
+        const data = await resp.json();
+        if (!data.success) {
+            alert('获取详情失败: ' + data.error);
+            return;
+        }
+        // 显示详情弹窗
+        const state = data.data;
+        alert(`📋 ${state.product_name}\n\n分析时间: ${state.comprehensive?.summary ? '已生成' : '查看详情'}\n\n（完整报告将在新页面展示）`);
+        // 简化：跳转到分析页并加载数据（实际可以用更复杂的交互）
+        location.hash = 'analyze';
+        document.getElementById('productName').value = state.product_name;
+        document.getElementById('productDesc').value = state.product_description || '';
+        // 提示用户重新分析
+        alert('💡 已加载产品信息到分析页面，点击「开始全面分析」可重新生成报告。\n\n（如需查看历史完整报告，建议后续用弹窗或独立页面展示）');
+    } catch (e) {
+        alert('查看详情失败: ' + e.message);
+    }
+}
+
+async function deleteHistory(id) {
+    if (!confirm('确定要删除这条记录吗？')) return;
+    try {
+        const resp = await fetch(`/api/history/delete/${id}`, {method: 'DELETE'});
+        const data = await resp.json();
+        if (data.success) {
+            loadHistory();
+        } else {
+            alert('删除失败: ' + data.error);
+        }
+    } catch (e) {
+        alert('删除失败: ' + e.message);
+    }
+}
+
+async function performCompare() {
+    if (selectedIds.length !== 2) return;
+    
+    const [id1, id2] = selectedIds;
+    try {
+        const [resp1, resp2] = await Promise.all([
+            fetch(`/api/history/detail/${id1}`),
+            fetch(`/api/history/detail/${id2}`)
+        ]);
+        const data1 = await resp1.json();
+        const data2 = await resp2.json();
+        
+        if (!data1.success || !data2.success) {
+            alert('获取对比数据失败');
+            return;
+        }
+        
+        renderCompareResult(data1.data, data2.data);
+        document.getElementById('compareResult').style.display = 'block';
+    } catch (e) {
+        alert('对比失败: ' + e.message);
+    }
+}
+
+function renderCompareResult(state1, state2) {
+    const container = document.getElementById('compareContent');
+    
+    // 辅助函数：从对象中根据点号路径取值
+    function getValue(obj, path) {
+        if (!obj) return '-';
+        const keys = path.split('.');
+        let current = obj;
+        for (let k of keys) {
+            if (current === null || current === undefined) return '-';
+            current = current[k];
+        }
+        if (current === null || current === undefined) return '-';
+        if (typeof current === 'object') return JSON.stringify(current, null, 2);
+        return String(current);
+    }
+    
+    const fields = [
+        {label: '产品名称', key: 'product_name'},
+        {label: '产品描述', key: 'product_description'},
+        {label: '品牌定位', key: 'strategy.brand_positioning'},
+        {label: '核心价值主张', key: 'strategy.core_value_proposition'},
+        {label: '市场趋势', key: 'market_analysis.market_trend'},
+        {label: '综合建议', key: 'comprehensive.recommendations'},
+    ];
+    
+    let html1 = `<div style="background:#f8fafc; border-radius:8px; padding:16px; border:1px solid #e2e8f0;">
+        <h5 style="color:#3b82f6; margin-bottom:8px;">${state1.product_name || '产品1'}</h5>
+        <hr style="margin:8px 0;">`;
+    fields.forEach(f => {
+        const val = getValue(state1, f.key);
+        html1 += `<p style="font-size:13px; margin:6px 0;"><strong>${f.label}:</strong> ${val}</p>`;
+    });
+    html1 += `</div>`;
+    
+    let html2 = `<div style="background:#f8fafc; border-radius:8px; padding:16px; border:1px solid #e2e8f0;">
+        <h5 style="color:#3b82f6; margin-bottom:8px;">${state2.product_name || '产品2'}</h5>
+        <hr style="margin:8px 0;">`;
+    fields.forEach(f => {
+        const val = getValue(state2, f.key);
+        html2 += `<p style="font-size:13px; margin:6px 0;"><strong>${f.label}:</strong> ${val}</p>`;
+    });
+    html2 += `</div>`;
+    
+    container.innerHTML = html1 + html2;
+}
+
+// 初始化历史记录（当切换到 history 时加载）
+document.addEventListener('DOMContentLoaded', function() {
+    // 监听 hash 变化，在切换到 workspace 时加载历史
+    const origSwitch = window.switchAgent;
+    window.switchAgent = function(agent) {
+        origSwitch(agent);
+        if (agent === 'history') {
+            loadHistory();
+        }
+    };
+});
 </script>
 </body>
 </html>"""
@@ -1597,6 +2445,162 @@ async def social_publish(request: Request):
     result = social_agent.publish(data.get("platform", ""), data.get("content", ""))
     return result
 
+# ================================================================
+# 文件分析 API
+# ================================================================
+
+@app.post("/api/analyze-file")
+async def analyze_file(request: Request):
+    """分析上传的 TXT/JSON 文件，返回摘要、评价、建议和情感评分"""
+    try:
+        data = await request.json()
+        file_content = data.get("content", "")
+        filename = data.get("filename", "未命名文件")
+
+        if not file_content.strip():
+            return {"error": "文件内容为空"}
+
+        # 限制内容长度（防止超 token）
+        if len(file_content) > 5000:
+            file_content = file_content[:5000] + "\n\n...（内容过长，截取前5000字符）"
+
+        # 调用 LLM
+        from langchain_openai import ChatOpenAI
+        llm = ChatOpenAI(
+            model=config.LLM_MODEL_NAME,
+            temperature=0.3,
+            openai_api_key=config.DEEPSEEK_API_KEY,
+            openai_api_base=config.DEEPSEEK_API_BASE,
+            timeout=config.LLM_TIMEOUT,
+        )
+
+        prompt = f"""你是一个数据分析专家。请分析以下文件内容，输出结构化的分析结果。
+
+【文件名】{filename}
+【文件内容】
+{file_content}
+
+【输出要求 - 严格使用以下 JSON 格式】
+{{
+  "summary": "（核心摘要，不超过100字）",
+  "positive_points": ["正面评价1", "正面评价2", "正面评价3"],
+  "negative_points": ["负面评价1", "负面评价2", "负面评价3"],
+  "improvements": ["改进建议1", "改进建议2", "改进建议3"],
+  "sentiment_score": 7.5,
+  "sentiment_label": "正面/中性/负面"
+}}
+
+注意：
+1. sentiment_score 为 0-10 的浮点数，10 为最正面
+2. 如果内容中没有明显的正面或负面评价，对应列表可以为空
+3. 改进建议要具体、可操作"""
+
+        response = llm.invoke(prompt)
+        raw = response.content
+
+        # 解析 JSON
+        import re, json
+        match = re.search(r'```(?:json)?\s*([\s\S]*?)```', raw)
+        if match:
+            candidate = match.group(1).strip()
+        else:
+            match = re.search(r'(\{[\s\S]*\})', raw)
+            candidate = match.group(1).strip() if match else raw
+
+        result = json.loads(candidate)
+
+        # 保证字段齐全
+        default = {
+            "summary": "分析完成",
+            "positive_points": [],
+            "negative_points": [],
+            "improvements": [],
+            "sentiment_score": 5.0,
+            "sentiment_label": "中性"
+        }
+        for key in default:
+            if key not in result:
+                result[key] = default[key]
+
+        return {
+            "success": True,
+            "filename": filename,
+            "result": result
+        }
+
+    except json.JSONDecodeError:
+        return {"success": False, "error": "LLM 返回结果解析失败，请重试"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+# ================================================================
+# 历史记录 API
+# ================================================================
+
+@app.get("/api/history/list")
+async def get_history_list(limit: int = 20):
+    """获取历史记录列表"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, product_name, created_at, summary, recommended_markets, key_strategy
+            FROM histories
+            ORDER BY created_at DESC
+            LIMIT ?
+        ''', (limit,))
+        rows = cursor.fetchall()
+        conn.close()
+        
+        result = []
+        for row in rows:
+            result.append({
+                "id": row[0],
+                "product_name": row[1],
+                "created_at": row[2],
+                "summary": row[3] or row[1],
+                "markets": row[4] or "-",
+                "strategy": row[5] or "-"
+            })
+        return {"success": True, "data": result}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/history/detail/{history_id}")
+async def get_history_detail(history_id: int):
+    """获取单条历史记录的完整详情"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT result_json FROM histories WHERE id = ?
+        ''', (history_id,))
+        row = cursor.fetchone()
+        conn.close()
+        
+        if not row:
+            return {"success": False, "error": "记录不存在"}
+        
+        state = json.loads(row[0])
+        return {"success": True, "data": state}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.delete("/api/history/delete/{history_id}")
+async def delete_history(history_id: int):
+    """删除历史记录"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM histories WHERE id = ?', (history_id,))
+        conn.commit()
+        conn.close()
+        return {"success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 @app.post("/analyze")
 async def analyze(request: Request):
     """（向后兼容）运行完整分析工作流，一次性返回格式化的结果"""
@@ -1691,6 +2695,44 @@ async def analyze_stream(request: Request):
 
         # 最终完成事件
         final = {"step": 7, "status": "complete", "errors": state.get("errors", [])}
+        # 在最终完成事件之前添加保存逻辑
+        if i == len(steps):
+            # 提取关键信息用于列表展示
+            product_analysis = state.get("product_analysis", {}) or {}
+            market_analysis = state.get("market_analysis", {}) or {}
+            strategy = state.get("strategy", {}) or {}
+            
+            summary = ""
+            if "category" in product_analysis:
+                cat = product_analysis.get("category", {})
+                if isinstance(cat, dict):
+                    summary = cat.get("level2", "") or cat.get("level1", "") or product_name
+            
+            markets = market_analysis.get("recommended_markets", [])
+            market_names = ", ".join([m.get("country", "") for m in markets if isinstance(m, dict)][:3])
+            
+            key_strategy = strategy.get("brand_positioning", "")[:50] or ""
+
+            # 保存到数据库
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO histories (product_name, product_description, created_at, result_json, summary, recommended_markets, key_strategy)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    product_name,
+                    product_description,
+                    datetime.now().isoformat(),
+                    json.dumps(state, ensure_ascii=False),
+                    summary,
+                    market_names,
+                    key_strategy
+                ))
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                print(f"⚠️ 保存历史记录失败: {e}")
         yield f"data: {json.dumps(final, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
