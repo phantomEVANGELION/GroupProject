@@ -6,12 +6,7 @@ from typing import Optional
 
 import chromadb
 from langchain_chroma import Chroma
-try:
-    # langchain-huggingface >= 0.1 新路径
-    from langchain_huggingface import HuggingFaceEmbeddings
-except ImportError:
-    # 降级到旧路径
-    from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
 import config

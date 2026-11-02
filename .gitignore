@@ -4,6 +4,8 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.venv/
+venv/
 
 # ChromaDB persistent data
 ai-export-demo/data/chroma_db/

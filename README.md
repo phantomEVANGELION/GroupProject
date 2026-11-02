@@ -49,6 +49,25 @@
 
 ---
 
+## 界面预览
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/01-home.png" alt="首页"></td>
+    <td width="50%"><img src="docs/screenshots/03-analysis-product.png" alt="产品分析结果"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>首页 · 产品定位与入口</sub></td>
+    <td align="center"><sub>产品分析 · 品类判定与用户画像</sub></td>
+  </tr>
+</table>
+
+<img src="docs/screenshots/02-analysis-market.png" alt="市场分析结果">
+
+<p align="center"><sub>市场分析 · 目标国家推荐、置信度标注与数据来源说明</sub></p>
+
+---
+
 ## 技术架构
 
 ```mermaid

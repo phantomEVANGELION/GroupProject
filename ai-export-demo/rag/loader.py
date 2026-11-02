@@ -42,16 +42,24 @@ def load_document(file_path: str) -> list[Document]:
 
 
 def _load_pdf(file_path: str, source_name: str) -> list[Document]:
-    """使用 PyMuPDF 加载 PDF"""
+    """使用 pypdf 逐页提取 PDF 文本"""
     try:
-        from langchain_community.document_loaders import PyMuPDFLoader
-        loader = PyMuPDFLoader(file_path)
-        docs = loader.load()
-        for doc in docs:
-            doc.metadata["source"] = source_name
-        return docs
+        from pypdf import PdfReader
     except ImportError:
-        raise ImportError("需要安装 PyMuPDF: pip install pymupdf")
+        raise ImportError("需要安装 pypdf: pip install pypdf")
+
+    reader = PdfReader(file_path)
+    docs: list[Document] = []
+    for page_no, page in enumerate(reader.pages, 1):
+        text = page.extract_text() or ""
+        if text.strip():
+            docs.append(Document(
+                page_content=text,
+                metadata={"source": source_name, "page": page_no},
+            ))
+    if not docs:
+        docs.append(Document(page_content="", metadata={"source": source_name}))
+    return docs
 
 
 def _load_txt(file_path: str, source_name: str) -> list[Document]:
@@ -62,16 +70,23 @@ def _load_txt(file_path: str, source_name: str) -> list[Document]:
 
 
 def _load_docx(file_path: str, source_name: str) -> list[Document]:
-    """使用 python-docx 加载 Word 文档"""
+    """使用 python-docx 提取段落与表格文本"""
     try:
-        from langchain_community.document_loaders import Docx2txtLoader
-        loader = Docx2txtLoader(file_path)
-        docs = loader.load()
-        for doc in docs:
-            doc.metadata["source"] = source_name
-        return docs
+        import docx
     except ImportError:
         raise ImportError("需要安装 python-docx: pip install python-docx")
+
+    document = docx.Document(file_path)
+    parts = [p.text for p in document.paragraphs if p.text.strip()]
+    # 表格内容按行拼接，避免产品参数表被丢弃
+    for table in document.tables:
+        for row in table.rows:
+            cells = [cell.text.strip() for cell in row.cells]
+            if any(cells):
+                parts.append(" | ".join(cells))
+
+    text = "\n".join(parts)
+    return [Document(page_content=text, metadata={"source": source_name})]
 
 
 def split_documents(documents: list[Document]) -> list[Document]:
