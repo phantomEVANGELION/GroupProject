@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# ChromaDB persistent data
+ai-export-demo/data/chroma_db/
+
+# Temporary uploads
+ai-export-demo/data/uploads/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Claude
+.claude/
+
+# 工作区数据
+.workbuddy-ai/
+
+# 课程交付物 / 内部材料（不纳入仓库）
+docs/*.tex
+docs/*答辩*
+docs/*交付物*

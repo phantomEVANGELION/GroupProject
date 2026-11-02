@@ -1,0 +1,61 @@
+{
+  "category": "服装",
+  "description": "服装品类主要竞品数据，覆盖快时尚到运动休闲",
+  "competitors": [
+    {
+      "name": "Zara",
+      "brand": "Inditex",
+      "price_range": "$19-$129",
+      "position": "快时尚中端",
+      "target_users": "追求时尚潮流的年轻消费者",
+      "strengths": ["极快的供应链响应（2周上新品）", "全球门店网络", "设计紧跟趋势"],
+      "weaknesses": ["价格高于 Shein", "线上体验一般", "可持续性受批评"],
+      "market_share": "全球快时尚约 8%",
+      "our_opportunity": "专注极致性价比，利用中国供应链优势打造更快的上新速度"
+    },
+    {
+      "name": "Shein",
+      "brand": "Shein",
+      "price_range": "$5-$50",
+      "position": "超快时尚低价",
+      "target_users": "18-30岁价格敏感型女性消费者",
+      "strengths": ["极致低价", "日均上新数千款", "数据驱动设计", "社交媒体运营强"],
+      "weaknesses": ["品质参差不齐", "供应链道德争议", "关税政策风险", "退货体验一般"],
+      "market_share": "美国快时尚电商约 20%",
+      "our_opportunity": "以略高价位提供更好品质，专注特定品类（如大码/运动）形成差异化"
+    },
+    {
+      "name": "Uniqlo",
+      "brand": "Fast Retailing",
+      "price_range": "$14-$89",
+      "position": "基础款中端",
+      "target_users": "追求舒适和品质的广泛人群",
+      "strengths": ["面料技术领先（HeatTech/Airism）", "基础款长青", "品质稳定"],
+      "weaknesses": ["款式基础缺乏设计感", "尺码偏小（欧美市场）", "线上营销偏保守"],
+      "market_share": "全球基础款服装约 5%",
+      "our_opportunity": "借鉴面料科技思路，在基础款上做功能创新，定价略低于 Uniqlo"
+    },
+    {
+      "name": "Gymshark",
+      "brand": "Gymshark",
+      "price_range": "$30-$80",
+      "position": "运动休闲 DTC",
+      "target_users": "健身爱好者、年轻运动人群",
+      "strengths": ["DTC 模式利润高", "KOL 社群运营强", "品牌调性年轻"],
+      "weaknesses": ["品类集中在运动", "尺码选择有限", "线下渠道缺失"],
+      "market_share": "全球运动休闲电商约 3%",
+      "our_opportunity": "拓展运动+日常多场景线，在亚马逊等平台进行全渠道布局"
+    },
+    {
+      "name": "Lululemon",
+      "brand": "Lululemon",
+      "price_range": "$68-$148",
+      "position": "高端运动休闲",
+      "target_users": "高收入女性、瑜伽爱好者",
+      "strengths": ["品牌溢价能力强", "社群运营标杆", "面料科技（Nulu）"],
+      "weaknesses": ["价格门槛高", "尺码包容性不足", "男性产品线偏弱"],
+      "market_share": "全球高端运动休闲约 12%",
+      "our_opportunity": "以 Lululemon 一半价格提供类似品质，重点突破男性运动休闲市场"
+    }
+  ]
+}

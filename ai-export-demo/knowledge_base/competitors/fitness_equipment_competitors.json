@@ -1,0 +1,61 @@
+{
+  "category": "健身器材",
+  "description": "家用健身器材主要竞品数据，覆盖高端智能到入门市场",
+  "competitors": [
+    {
+      "name": "Peloton Bike+",
+      "brand": "Peloton",
+      "price_range": "$2,495-$3,495",
+      "position": "高端智能健身",
+      "target_users": "高收入家庭、健身爱好者、内容订阅用户",
+      "strengths": ["优质直播课程内容", "品牌社群粘性高", "软硬件一体化体验"],
+      "weaknesses": ["价格极高", "订阅月费 $44 额外开支", "用户增长放缓"],
+      "market_share": "美国家庭动感单车约 30%",
+      "our_opportunity": "提供兼容 Peloton App 的性价比硬件，或打造自有课程生态的中价位方案"
+    },
+    {
+      "name": "NordicTrack S22i",
+      "brand": "NordicTrack (iFit)",
+      "price_range": "$1,999-$2,499",
+      "position": "中高端智能健身",
+      "target_users": "家庭健身入门至中级用户",
+      "strengths": ["iFit 课程内容丰富", "自动调节阻力", "品牌渠道广泛"],
+      "weaknesses": ["软件体验不及 Peloton", "硬件做工稳定性一般", "售后等待时间长"],
+      "market_share": "美国家庭健身器械约 20%",
+      "our_opportunity": "软件体验定制优化，提供更稳定的硬件质量和更快的售后响应"
+    },
+    {
+      "name": "Bowflex SelectTech 552",
+      "brand": "Bowflex (Nautilus)",
+      "price_range": "$349-$429",
+      "position": "中端空间节省型",
+      "target_users": "家庭健身空间有限的用户",
+      "strengths": ["可调节哑铃品类开创者", "节省空间", "调节方便"],
+      "weaknesses": ["重量上限不足（52.5lbs）", "调节机构可能故障", "价格偏高"],
+      "market_share": "可调节哑铃市场约 40%",
+      "our_opportunity": "在保证品质的前提下降低成本，或增加智能训练追踪功能"
+    },
+    {
+      "name": "Xiaomi Walking Pad A1 Pro",
+      "brand": "Xiaomi（小米）",
+      "price_range": "$399-$599",
+      "position": "性价比走步机",
+      "target_users": "办公室/居家办公轻度运动人群",
+      "strengths": ["价格竞争力强", "设计简约", "折叠收纳方便", "小米生态联动"],
+      "weaknesses": ["海外品牌认知度有限", "售后覆盖不足", "App 体验一般"],
+      "market_share": "全球走步机约 15%",
+      "our_opportunity": "专注走步机品类做深，强化海外品牌建设和本地售后"
+    },
+    {
+      "name": "Theragun Pro 5",
+      "brand": "Therabody",
+      "price_range": "$449-$599",
+      "position": "高端筋膜枪",
+      "target_users": "专业运动员、健身重度用户",
+      "strengths": ["品牌认知度高", "静音技术领先", "振幅和力度调节精准"],
+      "weaknesses": ["价格远高于同类", "功能差异有限", "过度营销"],
+      "market_share": "全球筋膜枪高端市场约 30%",
+      "our_opportunity": "以1/3 价格提供 80% 性能，专注亚马逊渠道快速铺量"
+    }
+  ]
+}
